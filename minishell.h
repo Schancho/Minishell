@@ -3,7 +3,21 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
+typedef enum e_file_type
+{
+        F_INPUT = 1,
+        F_OUTPUT = 2,
+        F_HEREDOC = 3,
+        F_APPEND = 4
+}           t_file_type;
+typedef struct  s_file
+{
+    t_file_type type;
+    char        *file;
+    struct s_file *next;
+}               t_file;
 typedef struct  s_command
 {
     char **command;

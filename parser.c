@@ -1,5 +1,7 @@
 #include "minishell.h"
 
+
+
 int     alloc_pipe(char *pipe)
 {
     int i;
@@ -14,7 +16,7 @@ int     alloc_pipe(char *pipe)
     }
     while (pipe[i])
     {
-        if (pipe[i] == '|' && pipe[i - 1] == ' ' && pipe[i + 1] == ' ')
+        if (pipe[i] == '|' && pipe[i - 1] != '"' && pipe[i + 1] != '"')
             p++;
         i++;
     }
@@ -29,14 +31,14 @@ char    *command(char *cmd)
     i = 0;
     while (cmd[i])
     {
-        if (cmd[i] == '|' && cmd[i - 1] == ' ' && cmd[i + 1] == ' ')
+        if (cmd[i] == '|')
             break;
         i++;
     }
     str = malloc(i + 1);
     i = 0;
     while (cmd[i] != '\0')
-    {
+    {        
         if (cmd[i] == '|' && cmd[i - 1] == ' ' && cmd[i + 1] == ' ')
             break;
         str[i] = cmd[i];
@@ -53,7 +55,7 @@ int     skip_pipe(char *line)
     i = 0;
     while (line[i])
     {
-        if (line[i] == '|' && line[i - 1] == ' ' && line[i + 1] == ' ')
+        if (line[i] == '|' && line[i - 1] == '"' && line[i + 1] == '"')
             break;
         i++;
     }
@@ -68,7 +70,7 @@ char    **split_pipe(char *line)
     
     j = 0;
     printf ("%d\n", alloc_pipe(line));
-    pipes = malloc(sizeof(char*) * alloc_pipe(line) + 1);
+    pipes = (char**)malloc(sizeof(char*) * (alloc_pipe(line) + 1));
     i = 0;
     while (i < alloc_pipe(line))
     {
@@ -81,20 +83,78 @@ char    **split_pipe(char *line)
     return pipes;
 }
 
+char    *get_file_name(char *str)
+{
+    int i;
+    char *name;
+    int j;
+
+    i = 0;
+    j = 0;
+    name = NULL;
+    while (str[i] == ' ')
+        i++;
+    while (str[i] && str[i] != ' ')
+    {
+        ft_strjoin(name, &str[i]);
+        i++;
+        j++;
+    }
+    if (j == 0)
+    {
+        printf("syntax error near unexpected token\n");
+        exit (1);
+    }
+    return (name);
+}
+
+t_file  *file_add(t_file *file, char *str, int type)
+{
+    t_file *new;
+    t_file *tmp;
+
+    new = (t_file *)malloc(sizeof(t_file));
+    new->type = type;
+    new->file = get_file_name(str);
+    tmp = file;
+    while (tmp->next)
+    {
+        tmp = tmp->next;
+    }
+    tmp->next = new;
+    return file;
+}
+t_file  *file(char *command)
+{
+    t_file *files;
+    int i;
+
+    i = 0;
+    while (command[i])
+    {
+        if (command[i] == '<' && command[i + 1] == '<')
+        {
+            i++;
+            files = file_add(files, command + i, 4);
+        }
+        i++;
+    }
+    return (files);
+}
+
 int main(int argc, char **argv)
 {
     int i;
     char **str;
     char *line;
+    t_file *filee;
 
-    i = 1;
-    // while (i < argc)
-    // {
-    //     line = ft_strjoin(line, argv[i]);
-    //     i++;
-    // }
-    str = split_pipe(argv[1]);
+    line = strdup(argv[1]);
+    str = split_pipe(line);
+    // filee = file(str[0]);
+    // printf("%s\n",filee->file);
     i = 0;
+
     while (str[i] != NULL)
     {
         printf("%s\n", str[i]);
