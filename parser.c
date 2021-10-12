@@ -1,6 +1,19 @@
 #include "minishell.h"
 
+int     valid_quote(char *pipe)
+{
+    int i;
 
+    i = 0;
+    while (pipe[i])
+    {
+        if (pipe[i] == '"')
+            return (i);
+        i++;
+    }
+    printf("Quote error\n");
+    exit (1);
+}
 
 int     alloc_pipe(char *pipe)
 {
@@ -16,7 +29,14 @@ int     alloc_pipe(char *pipe)
     }
     while (pipe[i])
     {
-        if (pipe[i] == '|' && pipe[i - 1] != '"' && pipe[i + 1] != '"')
+        if (pipe[i] == 34)
+        {
+            //printf("****%d\n",i);
+            i = valid_quote(pipe) + i + 3;
+            //printf("-=-%c\n",pipe[i]);
+            //printf("****%d\n",i);
+        }
+        if (pipe[i] == '|')
             p++;
         i++;
     }
@@ -149,7 +169,12 @@ int main(int argc, char **argv)
     char *line;
     t_file *filee;
 
-    line = strdup(argv[1]);
+    while (1)
+    {
+         line = readline("khater> ");
+    if  (!line)
+        exit(0);
+    add_history(line);
     str = split_pipe(line);
     // filee = file(str[0]);
     // printf("%s\n",filee->file);
@@ -159,6 +184,7 @@ int main(int argc, char **argv)
     {
         printf("%s\n", str[i]);
         i++;
+    }
     }
     return (0);
 }
