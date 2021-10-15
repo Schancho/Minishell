@@ -24,8 +24,14 @@ typedef struct  s_command
 {
     char **command;
     char **file;
-    struct s_command   *next_pipe;
+    struct s_command   *next;
 }               t_command;
+
+typedef struct s_pipe
+{
+    char    *pipe_line;
+    struct s_pipe   *next;
+}               t_pipe;
 
 char    **split_pipe(char *line);
 char	*ft_strjoin(char const *s1, char const *s2);

@@ -82,12 +82,6 @@ char    *command(char *cmd, int j, int m)
     char *str;
 
     i = 0;
-    // while (cmd[i])
-    // {
-    //     if (cmd[i] == '|')
-    //         break;
-    //     i++;
-    // }
     k = m - j + 1;
     str = malloc(k);
     while (cmd[j] != '\0' && i != k - 1)
@@ -202,29 +196,52 @@ t_file  *file(char *command)
     return (files);
 }
 
+t_pipe  *add_pipe_line(t_pipe *pipe, char *cmd)
+{
+    t_pipe *new;
+    t_pipe *tmp;
+
+    tmp = pipe;
+    new = (t_pipe *)malloc(sizeof(t_pipe));
+    new->pipe_line = strdup(cmd);
+    new->next = NULL;
+    while (tmp)
+        tmp = tmp->next;
+    tmp = new;
+    return pipe;
+}
+t_pipe  *pipe_line(t_pipe *p, char **command)
+{
+    int i;
+
+    while (command[i])
+    {
+        p = add_pipe_line(p, command[i]);
+        i++;
+    }
+    return p;
+}
 int main(int argc, char **argv)
 {
     int i;
     char **str;
     char *line;
+    int g;
     t_file *filee;
 
     while (1)
     {
-         line = readline("khater> ");
-    if  (!line)
-        exit(0);
-    add_history(line);
-    str = split_pipe(line);
-    // filee = file(str[0]);
-    // printf("%s\n",filee->file);
-    i = 0;
-
-    while (str[i] != NULL)
-    {
-        printf("%s\n", str[i]);
-        i++;
-    }
+        line = readline("khater> ");
+        if  (!line)
+            exit(0);
+        add_history(line);
+        str = split_pipe(line);
+        i = 0;
+        while (str[i] != NULL)
+        {
+            printf("(%s)\n", str[i]);
+            i++;
+        }
     }
     return (0);
 }
