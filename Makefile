@@ -9,3 +9,10 @@ all : $(NAME)
 
 $(NAME) : $(SRC)
 		$(CC) $(LDFLAGS) $(CPPFLAGS) -o $(NAME) $(SRC)
+clean:
+	@echo "there is no object files"
+
+fclean:clean
+	@rm minishell
+
+re:fclean all

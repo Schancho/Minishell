@@ -7,7 +7,7 @@ int     valid_quote(char *pipe)
     i = 0;
     while (pipe[i])
     {
-        if (pipe[i] == '"')
+        if (pipe[i] == 34)
             return (i);
         i++;
     }
@@ -19,7 +19,9 @@ int     alloc_pipe(char *pipe)
 {
     int i;
     int p;
+    int j;
 
+    j = 0;
     p = 1;
     i = 0;
     if (pipe[0] == '|')
@@ -31,10 +33,13 @@ int     alloc_pipe(char *pipe)
     {
         if (pipe[i] == 34)
         {
-            //printf("****%d\n",i);
-            i = valid_quote(pipe) + i + 3;
+            //printf("1****%d\n",i);
+            j = valid_quote(pipe + i + 1);
+            //printf("j == %d\n",j);
+            i = i + j + 1;
             //printf("-=-%c\n",pipe[i]);
-            //printf("****%d\n",i);
+            //printf("2****%d\n",i);
+            //j = 0;
         }
         if (pipe[i] == '|')
             p++;
@@ -43,26 +48,53 @@ int     alloc_pipe(char *pipe)
     return (p);
 }
 
-char    *command(char *cmd)
+int     end(char *line)
 {
     int i;
+    int p;
+    int k;
+
+    p = 0;
+    i = 0;
+    while (line[i])
+    {
+        if (line[i] == 34)
+        {
+            i++;
+            while (line[i])
+            {
+                if (line[i] == 34)
+                    break;
+                i++;
+            }
+        }
+        if (line[i] == '|')
+            return i;
+        i++;
+    }
+    return i;
+}
+
+char    *command(char *cmd, int j, int m)
+{
+    int i;
+    int k;
     char *str;
 
     i = 0;
-    while (cmd[i])
+    // while (cmd[i])
+    // {
+    //     if (cmd[i] == '|')
+    //         break;
+    //     i++;
+    // }
+    k = m - j + 1;
+    str = malloc(k);
+    while (cmd[j] != '\0' && i != k - 1)
     {
-        if (cmd[i] == '|')
-            break;
+        str[i] = cmd[j];
         i++;
-    }
-    str = malloc(i + 1);
-    i = 0;
-    while (cmd[i] != '\0')
-    {        
-        if (cmd[i] == '|' && cmd[i - 1] == ' ' && cmd[i + 1] == ' ')
-            break;
-        str[i] = cmd[i];
-        i++;
+        j++;
     }
     str[i] = '\0';
     return (str);
@@ -75,7 +107,7 @@ int     skip_pipe(char *line)
     i = 0;
     while (line[i])
     {
-        if (line[i] == '|' && line[i - 1] == '"' && line[i + 1] == '"')
+        if (line[i] == '|')
             break;
         i++;
     }
@@ -86,17 +118,25 @@ char    **split_pipe(char *line)
 {
     int i;
     int j;
+    int k;
+    int m;
     char **pipes;
     
     j = 0;
-    printf ("%d\n", alloc_pipe(line));
-    pipes = (char**)malloc(sizeof(char*) * (alloc_pipe(line) + 1));
+    k = alloc_pipe(line);
+    printf ("%d\n", k);
+    pipes = (char**)malloc(sizeof(char*) * (k + 1));
     i = 0;
-    while (i < alloc_pipe(line))
+    m = 0;
+    while (i < k)
     {
-        pipes[i] = command(line + j);
+        m = end(line + j) + j;
+        //printf("j == %d m == %d\n",j, m);
+        pipes[i] = command(line,j,m);
+        //printf("|%s|..\n",pipes[i]);
+        j = m + 1;
        //printf("1%s\n",pipes[i]);
-        j = skip_pipe(line) + 1;
+        //j = skip_pipe(line) + 1;
         i++;
     }
     pipes[i] = NULL;
