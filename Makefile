@@ -1,6 +1,6 @@
 LDFLAGS=-lreadline -L/goinfre/schancho/schancho/.brew/opt/readline/lib
 CPPFLAGS=-I/goinfre/schancho/schancho/.brew/opt/readline/include
-CC = gcc
+CC = gcc -g -fsanitize=address
 FLAGS = -Wall -Wextra -Werror
 SRC = parser.c utils.c 
 NAME = minishell

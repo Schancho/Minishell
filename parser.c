@@ -170,12 +170,14 @@ t_file  *file_add(t_file *file, char *str, int type)
     new = (t_file *)malloc(sizeof(t_file));
     new->type = type;
     new->file = get_file_name(str);
+    printf ("%s\n",str);
     tmp = file;
-    while (tmp->next)
+    while (tmp != NULL)
     {
+
         tmp = tmp->next;
     }
-    tmp->next = new;
+    tmp = new;
     return file;
 }
 t_file  *file(char *command)
@@ -186,7 +188,7 @@ t_file  *file(char *command)
     i = 0;
     while (command[i])
     {
-        if (command[i] == '<' && command[i + 1] == '<')
+        if (command[i] == '>' && command[i + 1] == '>')
         {
             i++;
             files = file_add(files, command + i, 4);
@@ -223,7 +225,7 @@ t_pipe  *pipe_line(t_pipe *p, char **command)
 }
 int main(int argc, char **argv)
 {
-    int i;
+    int     i;
     char **str;
     char *line;
     int g;
@@ -231,17 +233,19 @@ int main(int argc, char **argv)
 
     while (1)
     {
-        line = readline("khater> ");
+        line = readline("shell> ");
         if  (!line)
             exit(0);
         add_history(line);
         str = split_pipe(line);
         i = 0;
-        while (str[i] != NULL)
-        {
-            printf("(%s)\n", str[i]);
-            i++;
-        }
+             printf("(%s)\n", str[0]);
+        filee = file(str[0]);
+        //printf("type = %d file_name = %s\n",filee->type, filee->file);
+        // while (str[i] != NULL)
+        // {
+        //     i++;
+        // }
     }
     return (0);
 }
