@@ -20,12 +20,19 @@ typedef struct  s_file
     char        *file;
     struct s_file *next;
 }               t_file;
-typedef struct  s_command
+
+typedef struct          s_command
 {
-    char **command;
-    char **file;
-    struct s_command   *next;
-}               t_command;
+    char                *command;
+    struct s_command    *next;
+}                       t_command;
+
+typedef struct          s_pline
+{
+    t_command           *command;
+    t_file              *file;
+    struct s_pline      *next;
+}                       t_pline;
 
 typedef struct s_pipe
 {

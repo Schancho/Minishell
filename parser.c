@@ -1,5 +1,43 @@
 #include "minishell.h"
 
+char *replaceWord(const char* s, const char* oldW,
+                  const char* newW)
+{
+    char* result;
+    int i, cnt = 0;
+    int newWlen = strlen(newW);
+    int oldWlen = strlen(oldW);
+  
+    // Counting the number of times old word
+    // occur in the string
+    for (i = 0; s[i] != '\0'; i++) {
+        if (strstr(&s[i], oldW) == &s[i]) {
+            cnt++;
+  
+            // Jumping to index after the old word.
+            i += oldWlen - 1;
+        }
+    }
+  
+    // Making new string of enough length
+    result = (char*)malloc(i + cnt * (newWlen - oldWlen) + 1);
+  
+    i = 0;
+    while (*s) {
+        // compare the substring with the result
+        if (strstr(s, oldW) == s) {
+            strcpy(&result[i], newW);
+            i += newWlen;
+            s += oldWlen;
+        }
+        else
+            result[i++] = *s++;
+    }
+  
+    result[i] = '\0';
+    return result;
+}
+
 int     is_redirection(char c)
 {
     if (c == '>' || c == '<')
@@ -9,11 +47,13 @@ int     is_redirection(char c)
 int     valid_quote(char *pipe)
 {
     int i;
+    char q;
 
+    q = pipe[i - 1];
     i = 0;
     while (pipe[i])
     {
-        if (pipe[i] == 34)
+        if (pipe[i] == q)
             return (i);
         i++;
     }
@@ -37,15 +77,10 @@ int     alloc_pipe(char *pipe)
     }
     while (pipe[i])
     {
-        if (pipe[i] == 34)
+        if (pipe[i] == 34 || pipe[i] == 39)
         {
-            //printf("1****%d\n",i);
             j = valid_quote(pipe + i + 1);
-            //printf("j == %d\n",j);
             i = i + j + 1;
-            //printf("-=-%c\n",pipe[i]);
-            //printf("2****%d\n",i);
-            //j = 0;
         }
         if (pipe[i] == '|')
             p++;
@@ -150,7 +185,6 @@ char    *quote_handler(char *name, char *str, int *i)
 
     s = malloc(2);
     q = str[*i];
-    printf("--%d %c\n",*i,str[*i]);
     (*i)++;
     while (str[*i])
     {
@@ -162,7 +196,6 @@ char    *quote_handler(char *name, char *str, int *i)
         s[0] = str[*i];
         s[1] = '\0';
         name = ft_strjoin(name, s);
-        printf("--%d %c\n",*i,str[*i]);
         (*i)++;
     }
     if (str[*i] == '\0')
@@ -190,7 +223,6 @@ char    *get_file_name(char *str)
     {
         s[0] = str[i];
         s[1] = '\0';
-        printf("after %d %s\n",i,str+i);
         if (str[i] == 39 || str[i] == 34)
         {
             name = quote_handler(name, str, &i);
@@ -254,28 +286,34 @@ t_file    *file(t_file *files, char *command)
     i = 0;
     while (command[i])
     {
+        k = 0;
         i = skipe_quote(command, i);
         if (command[i] == '>' && command[i + 1] == '>')
         {
             i += 2;
             files = file_add(files, command + i, 4);
+            k = 1;
         }
         else if (command[i] == '<' && command[i + 1] == '<')
         {
             i += 2;
             files = file_add(files, command + i, 3);
+            k = 1;
         }
         else if (command[i] == '>')
         {
             i += 1;
             files = file_add(files, command + i, 1);
+            k = 1;
         }
         else if (command[i] == '<')
         {
             i += 1;
             files = file_add(files, command + i, 2);
+            k = 1;
         }
-        i++;
+        if (k != 1)
+            i++;
     }
     return (files);
 }
@@ -306,15 +344,39 @@ t_pipe  *pipe_line(t_pipe *p, char **command)
     }
     return p;
 }
-int main(int argc, char **argv)
+
+char    *get_red_to_delete(char *str)
+{
+    
+}
+
+char    *delete_red(char *str)
+{
+    char *ret;
+    int i;
+
+    i = 0;
+    while (str[i])
+    {
+
+    }
+}
+
+t_command   *get_command(t_command *cmd, char *command)
+{
+
+    return cmd; 
+}
+
+int main(int argc, char **argv, char **env)
 {
     int     i;
     char **str;
     char *line;
     int g;
     t_file *filee;
+    t_command *cmd;
 
-    //filee = (t_file *)malloc(sizeof(t_file));
     filee = NULL;
     while (1)
     {
@@ -330,7 +392,7 @@ int main(int argc, char **argv)
             i = 0;
             printf("(%s)\n", str[0]);
             filee = file(filee, str[0]);
-            
+            cmd = get_command(cmd, str[0]);
             while (filee)
             {
                 printf("type = %d file_name = %s\n",filee->type, filee->file);
