@@ -1,5 +1,11 @@
 #include "minishell.h"
 
+int     is_redirection(char c)
+{
+    if (c == '>' || c == '<')
+        return (1);
+    return (0);
+}
 int     valid_quote(char *pipe)
 {
     int i;
@@ -137,21 +143,64 @@ char    **split_pipe(char *line)
     return pipes;
 }
 
+char    *quote_handler(char *name, char *str, int *i)
+{
+    char q;
+    char *s;
+
+    s = malloc(2);
+    q = str[*i];
+    printf("--%d %c\n",*i,str[*i]);
+    (*i)++;
+    while (str[*i])
+    {
+        if (str[*i] == q)
+        {
+            (*i)++;
+            return (name);
+        }
+        s[0] = str[*i];
+        s[1] = '\0';
+        name = ft_strjoin(name, s);
+        printf("--%d %c\n",*i,str[*i]);
+        (*i)++;
+    }
+    if (str[*i] == '\0')
+    {
+        printf("error quotes\n");
+        //exit(0);
+    }
+    return (NULL);
+}
+
 char    *get_file_name(char *str)
 {
     int i;
     char *name;
     int j;
+    char *s;
 
     i = 0;
     j = 0;
-    name = NULL;
-    while (str[i] == ' ')
+    s = (char *)malloc(2);
+    name = "\0";
+    while (str[i] == ' ' )
         i++;
-    while (str[i] && str[i] != ' ')
+    while (str[i] && str[i] != ' ' && !is_redirection(str[i]))
     {
-        ft_strjoin(name, &str[i]);
-        i++;
+        s[0] = str[i];
+        s[1] = '\0';
+        printf("after %d %s\n",i,str+i);
+        if (str[i] == 39 || str[i] == 34)
+        {
+            name = quote_handler(name, str, &i);
+            printf("%d\n",i);
+        }
+        else
+        {
+            name = ft_strjoin(name, s);
+            i++;
+        }
         j++;
     }
     if (j == 0)
@@ -167,36 +216,70 @@ t_file  *file_add(t_file *file, char *str, int type)
     t_file *new;
     t_file *tmp;
 
-    new = (t_file *)malloc(sizeof(t_file));
-    new->type = type;
-    new->file = get_file_name(str);
-    printf ("%s\n",str);
     tmp = file;
-    while (tmp != NULL)
-    {
-
+    new = (t_file *)malloc(sizeof(t_file));
+    new->next = NULL;
+    new->type = type;
+    new->file = (get_file_name(str));
+    if (!tmp)
+        return (new);
+    while (tmp->next)
         tmp = tmp->next;
-    }
-    tmp = new;
+    tmp->next = new;
     return file;
 }
-t_file  *file(char *command)
+
+int       skipe_quote(char *str, int i)
 {
-    t_file *files;
+    char q;
+
+    q = str[i];
+    if (str[i] != 39 && str[i] != 34)
+        return (i);
+    i++;
+    while (str[i] != q)
+        i++;
+    if (str[i] != q)
+    {
+        printf("Error quote!\n");
+        exit(1);
+    }
+    return (i);
+}
+t_file    *file(t_file *files, char *command)
+{
     int i;
+    int k;
 
     i = 0;
     while (command[i])
     {
+        i = skipe_quote(command, i);
         if (command[i] == '>' && command[i + 1] == '>')
         {
-            i++;
+            i += 2;
             files = file_add(files, command + i, 4);
+        }
+        else if (command[i] == '<' && command[i + 1] == '<')
+        {
+            i += 2;
+            files = file_add(files, command + i, 3);
+        }
+        else if (command[i] == '>')
+        {
+            i += 1;
+            files = file_add(files, command + i, 1);
+        }
+        else if (command[i] == '<')
+        {
+            i += 1;
+            files = file_add(files, command + i, 2);
         }
         i++;
     }
     return (files);
 }
+
 
 t_pipe  *add_pipe_line(t_pipe *pipe, char *cmd)
 {
@@ -231,21 +314,29 @@ int main(int argc, char **argv)
     int g;
     t_file *filee;
 
+    //filee = (t_file *)malloc(sizeof(t_file));
+    filee = NULL;
     while (1)
     {
         line = readline("shell> ");
         if  (!line)
             exit(0);
-        add_history(line);
-        str = split_pipe(line);
-        i = 0;
-             printf("(%s)\n", str[0]);
-        filee = file(str[0]);
-        //printf("type = %d file_name = %s\n",filee->type, filee->file);
-        // while (str[i] != NULL)
-        // {
-        //     i++;
-        // }
+        if (line[0] == '\0')
+            ;
+        else
+        {
+            add_history(line);
+            str = split_pipe(line);
+            i = 0;
+            printf("(%s)\n", str[0]);
+            filee = file(filee, str[0]);
+            
+            while (filee)
+            {
+                printf("type = %d file_name = %s\n",filee->type, filee->file);
+                filee = filee->next;
+            }
+        }
     }
     return (0);
 }
