@@ -40,7 +40,13 @@ typedef struct s_pipe
     struct s_pipe   *next;
 }               t_pipe;
 
+typedef struct s_line
+{
+    t_pline *pipe_line;
+    struct s_line *next;
+}               t_line;
 char    **split_pipe(char *line);
 char	*ft_strjoin(char const *s1, char const *s2);
+char	**ft_split(char const *str, char c);
 
 #endif

@@ -49,8 +49,9 @@ int     valid_quote(char *pipe)
     int i;
     char q;
 
-    q = pipe[i - 1];
     i = 0;
+    q = pipe[i];
+    i++;
     while (pipe[i])
     {
         if (pipe[i] == q)
@@ -77,9 +78,9 @@ int     alloc_pipe(char *pipe)
     }
     while (pipe[i])
     {
-        if (pipe[i] == 34 || pipe[i] == 39)
+        while (pipe[i] == 34 || pipe[i] == 39)
         {
-            j = valid_quote(pipe + i + 1);
+            j = valid_quote(pipe + i);
             i = i + j + 1;
         }
         if (pipe[i] == '|')
@@ -94,17 +95,19 @@ int     end(char *line)
     int i;
     int p;
     int k;
+    char q;
 
     p = 0;
     i = 0;
     while (line[i])
     {
-        if (line[i] == 34)
+        if (line[i] == 34 || line[i] == 39)
         {
+            q = line[i];
             i++;
             while (line[i])
             {
-                if (line[i] == 34)
+                if (line[i] == q)
                     break;
                 i++;
             }
@@ -201,7 +204,7 @@ char    *quote_handler(char *name, char *str, int *i)
     if (str[*i] == '\0')
     {
         printf("error quotes\n");
-        //exit(0);
+        exit(0);
     }
     return (NULL);
 }
@@ -226,7 +229,6 @@ char    *get_file_name(char *str)
         if (str[i] == 39 || str[i] == 34)
         {
             name = quote_handler(name, str, &i);
-            printf("%d\n",i);
         }
         else
         {
@@ -347,25 +349,157 @@ t_pipe  *pipe_line(t_pipe *p, char **command)
 
 char    *get_red_to_delete(char *str)
 {
-    
+    return NULL;
+}
+
+int     skip_redirection(char *str, int i)
+{
+    char q;
+
+    while (str[i] && str[i] == ' ')
+        i++;
+    while (str[i] && str[i] != ' ')
+    {
+        if (str[i] == 34 || str[i] == 39)
+        {
+            q = str[i];
+            i++;
+            while (str[i] != q)
+                i++;
+        }
+        i++;
+    }
+    return (i);
 }
 
 char    *delete_red(char *str)
 {
     char *ret;
+    char *s;
     int i;
+    char q;
 
+    s = malloc(2);
+    ret = malloc(1);
+    s[1] = '\0';
+    ret[0] = '\0';
     i = 0;
     while (str[i])
     {
-
+        if (str[i] == 34 || str[i] == 39)
+        {
+            q = str[i];
+            if (str[i + 1] == q)
+                i = i + 2;
+            else
+            {
+                s[0] = str[i];
+                ret = ft_strjoin(ret, s);
+                i++;
+                printf("tttt: |%s|\n",str+i);
+                while (str[i] != q)
+                {
+                    s[0] = str[i];
+                    if (str[i] != q)
+                        ret = ft_strjoin(ret, s);
+                    i++;
+                }
+                s[0] = str[i];
+                ret = ft_strjoin(ret, s);
+                i++;
+            }
+        }
+        else if (is_redirection(str[i]))
+        {
+            i++;
+            if (is_redirection(str[i]))
+                i++;
+            i = skip_redirection(str, i) ;
+            printf(">>: |%s|\n",str+i);
+        }
+        else
+        {
+            s[0] = str[i];
+            ret = ft_strjoin(ret, s);
+            i++;
+        }
     }
+    return (ret);
+}
+
+t_command   *command_parser(t_command *cmd, char *str)
+{
+    t_command *tmp;
+    t_command *new;
+
+    tmp = cmd;
+    new = (t_command *)malloc(sizeof(t_command));
+    new->next = NULL;
+    new->command = strdup(str);
+    if(!tmp)
+        return (new);
+    while (tmp->next)
+        tmp = tmp->next;
+    tmp->next = new;
+    return (cmd);
 }
 
 t_command   *get_command(t_command *cmd, char *command)
 {
+    char **str;
+    int i;
 
+    i = 0;
+    str = ft_split(delete_red(command), ' ');
+    while (str[i])
+    {
+        cmd = command_parser(cmd, str[i]);
+        i++;
+    }
     return cmd; 
+}
+
+t_pline     *pipeline(t_pline *pipe, t_file *file, t_command *cmd)
+{
+    t_pline *new;
+    t_pline *tmp;
+
+    tmp = pipe;
+    new = (t_pline *)malloc(sizeof(t_pline));
+    new->next = NULL;
+    new->file = file;
+    new->command = cmd;
+    if (!tmp)
+        return (new);
+    while (tmp->next)
+        tmp = tmp->next;
+    tmp->next = new;
+    return (pipe);
+}
+
+t_pline     *pline(t_pline *p_line, t_file *files, t_command *cmd, char *str)
+{
+    files = file(files, str);
+    cmd = get_command(cmd, str);
+    p_line = pipeline(p_line, files, cmd);
+    return (p_line);
+}
+
+t_line  *command_line(t_line *line, t_pline *pipe)
+{
+    t_line *tmp;
+    t_line *new;
+
+    tmp = line;
+    new = (t_line *)malloc(sizeof(t_line));
+    new->next = NULL;
+    new->pipe_line = pipe;
+    if (!tmp)
+        return (new);
+    while (tmp->next)
+        tmp = tmp->next;
+    tmp->next = new;
+    return (line);  
 }
 
 int main(int argc, char **argv, char **env)
@@ -373,11 +507,18 @@ int main(int argc, char **argv, char **env)
     int     i;
     char **str;
     char *line;
-    int g;
-    t_file *filee;
-    t_command *cmd;
+    int j;
+    t_file *files;
+    t_command *command;
+    t_pline *p_line;
+    t_line  *cmd_line;
 
-    filee = NULL;
+    p_line = NULL;
+    command = NULL;
+    char *cmd;
+    //char **command;
+
+    files = NULL;
     while (1)
     {
         line = readline("shell> ");
@@ -390,14 +531,52 @@ int main(int argc, char **argv, char **env)
             add_history(line);
             str = split_pipe(line);
             i = 0;
-            printf("(%s)\n", str[0]);
-            filee = file(filee, str[0]);
-            cmd = get_command(cmd, str[0]);
-            while (filee)
+            while (str[i])
             {
-                printf("type = %d file_name = %s\n",filee->type, filee->file);
-                filee = filee->next;
+                p_line = pline(p_line, files, command, str[i]);
+                i++;
             }
+            i = 1;
+            while (p_line)
+            {
+                printf("pipeline N %d: \n",i);
+                j = 1;
+                while (p_line->command)
+                {
+                    printf("    command N %d: %s\n",j,p_line->command->command);
+                    p_line->command = p_line->command->next;
+                    j++;
+                }
+                j = 0;
+                while (p_line->file)
+                {
+                    printf("    file N %d: %s\n",j,p_line->file->file);
+                    p_line->file = p_line->file->next;
+                    j++;
+                }
+                p_line = p_line->next;
+                i++;
+            }
+            // p_line = pline(p_line, files, command, str[0]);
+            // printf("command: |%s|\n file: %s\n",p_line->command->command, p_line->file->file);
+            // i = 0;
+            // printf("(%s)\n", str[0]);
+            // files = file(files, str[0]);
+            // cmd = delete_red(str[0]);
+            // printf("cmd: |%s|\n",cmd);
+            // command = get_command(command, str[0]);
+            // i = 0;
+            // while (command)
+            // {
+            //     printf("command %d: %s\n",i,command->command);
+            //     command = command->next;
+            //     i++;
+            // }
+            // while (files)
+            // {
+            //     printf("type = %d file_name = %s\n",files->type, files->file);
+            //     files = files->next;
+            // }
         }
     }
     return (0);
