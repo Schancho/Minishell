@@ -4,6 +4,8 @@ int	ft_wdcounter(char const *str, char c)
 {
 	int	words;
 	int	i;
+	char q;
+	int  test;
 
 	i = 0;
 	words = 0;
@@ -14,7 +16,18 @@ int	ft_wdcounter(char const *str, char c)
 		if (str[i])
 			words++;
 		while (str[i] != c && str[i] != '\0')
-			i++;
+		{
+			if (str[i] == 34 || str[i] == 39)
+			{
+				q = str[i++];
+				while (str[i] != q)
+					i++;
+				i++;
+			}
+			else
+				i++;
+		}
+		test = 0;
 	}
 	return (words);
 }
@@ -25,6 +38,7 @@ static char	**memory_giver(char const *str, char c)
 	int		letters;
 	int		i;
 	int		j;
+	char	q;
 
 	res = (char **)malloc(sizeof(char *) * (ft_wdcounter(str, c) + 1));
 	i = 0;
@@ -36,8 +50,22 @@ static char	**memory_giver(char const *str, char c)
 			i++;
 		while (str[i] != c && str[i] != '\0')
 		{
-			letters++;
-			i++;
+			//letters++;
+			if (str[i] == 34 || str[i] == 39)
+			{
+				q = str[i++];
+				while (str[i] != q)
+				{
+					i++;
+					letters++;
+				}
+				i++;
+			}
+			else
+			{
+				i++;
+				letters++;
+			}
 		}
 		if (letters > 0)
 			res[j++] = (char *)malloc(sizeof(char) * letters + 1);
@@ -53,6 +81,7 @@ char	**ft_split(char const *str, char c)
 	int		j;
 	int		str_number;
 	int		size;
+	char 	q;
 
 	if (str == NULL)
 		return (NULL);
@@ -68,7 +97,17 @@ char	**ft_split(char const *str, char c)
 			i++;
 		j = 0;
 		while (str[i] != c && str[i])
-			res[str_number][j++] = str[i++];
+		{
+			if (str[i] == 34 || str[i] == 39)
+			{
+				q = str[i++];
+				while (str[i] != q)
+					res[str_number][j++] = str[i++];
+				i++;
+			}
+			else
+				res[str_number][j++] = str[i++];
+		}
 		res[str_number][j] = '\0';
 		str_number++;
 	}

@@ -1,43 +1,5 @@
 #include "minishell.h"
 
-char *replaceWord(const char* s, const char* oldW,
-                  const char* newW)
-{
-    char* result;
-    int i, cnt = 0;
-    int newWlen = strlen(newW);
-    int oldWlen = strlen(oldW);
-  
-    // Counting the number of times old word
-    // occur in the string
-    for (i = 0; s[i] != '\0'; i++) {
-        if (strstr(&s[i], oldW) == &s[i]) {
-            cnt++;
-  
-            // Jumping to index after the old word.
-            i += oldWlen - 1;
-        }
-    }
-  
-    // Making new string of enough length
-    result = (char*)malloc(i + cnt * (newWlen - oldWlen) + 1);
-  
-    i = 0;
-    while (*s) {
-        // compare the substring with the result
-        if (strstr(s, oldW) == s) {
-            strcpy(&result[i], newW);
-            i += newWlen;
-            s += oldWlen;
-        }
-        else
-            result[i++] = *s++;
-    }
-  
-    result[i] = '\0';
-    return result;
-}
-
 int     is_redirection(char c)
 {
     if (c == '>' || c == '<')
@@ -169,12 +131,8 @@ char    **split_pipe(char *line)
     while (i < k)
     {
         m = end(line + j) + j;
-        //printf("j == %d m == %d\n",j, m);
         pipes[i] = command(line,j,m);
-        //printf("|%s|..\n",pipes[i]);
         j = m + 1;
-       //printf("1%s\n",pipes[i]);
-        //j = skip_pipe(line) + 1;
         i++;
     }
     pipes[i] = NULL;
@@ -396,7 +354,6 @@ char    *delete_red(char *str)
                 s[0] = str[i];
                 ret = ft_strjoin(ret, s);
                 i++;
-                printf("tttt: |%s|\n",str+i);
                 while (str[i] != q)
                 {
                     s[0] = str[i];
@@ -415,7 +372,6 @@ char    *delete_red(char *str)
             if (is_redirection(str[i]))
                 i++;
             i = skip_redirection(str, i) ;
-            printf(">>: |%s|\n",str+i);
         }
         else
         {
@@ -502,7 +458,32 @@ t_line  *command_line(t_line *line, t_pline *pipe)
     return (line);  
 }
 
-int main(int argc, char **argv, char **env)
+char    *env_var(char **env, char *str)
+{
+    int i;
+    int l;
+
+    i = 0;
+    l = strlen(str);
+    while (env[i])
+    {
+        if (strncmp(env[i], str, l) == 0 && env[i][l] == '=')
+            return (env[i] + l + 1);
+        i++;
+    }
+    return (NULL);
+}
+
+void    reline(int sig)
+{
+    //signal(SIGINT, reline);
+    //write(2, "\r",1);
+    rl_on_new_line();
+    rl_replace_line("shell",STDIN_FILENO);
+    rl_redisplay();
+}
+
+int main(int argc, char **argv)
 {
     int     i;
     char **str;
@@ -511,7 +492,7 @@ int main(int argc, char **argv, char **env)
     t_file *files;
     t_command *command;
     t_pline *p_line;
-    t_line  *cmd_line;
+    
 
     p_line = NULL;
     command = NULL;
@@ -519,6 +500,9 @@ int main(int argc, char **argv, char **env)
     //char **command;
 
     files = NULL;
+        
+    
+    signal(SIGINT, reline);
     while (1)
     {
         line = readline("shell> ");
@@ -536,27 +520,31 @@ int main(int argc, char **argv, char **env)
                 p_line = pline(p_line, files, command, str[i]);
                 i++;
             }
-            i = 1;
-            while (p_line)
-            {
-                printf("pipeline N %d: \n",i);
-                j = 1;
-                while (p_line->command)
-                {
-                    printf("    command N %d: %s\n",j,p_line->command->command);
-                    p_line->command = p_line->command->next;
-                    j++;
-                }
-                j = 0;
-                while (p_line->file)
-                {
-                    printf("    file N %d: %s\n",j,p_line->file->file);
-                    p_line->file = p_line->file->next;
-                    j++;
-                }
-                p_line = p_line->next;
-                i++;
-            }
+            i = 0;
+            // while (env[i])
+            //     printf("%s\n",env[i++]);
+            cmd = getenv(line);
+            printf("env var: %s\n", cmd);
+            // while (p_line)
+            // {
+            //     printf("pipeline N %d: \n",i);
+            //     j = 1;
+            //     while (p_line->command)
+            //     {
+            //         printf("    command N %d: %s\n",j,p_line->command->command);
+            //         p_line->command = p_line->command->next;
+            //         j++;
+            //     }
+            //     j = 0;
+            //     while (p_line->file)
+            //     {
+            //         printf("    file N %d: %s\n",j,p_line->file->file);
+            //         p_line->file = p_line->file->next;
+            //         j++;
+            //     }
+            //     p_line = p_line->next;
+            //     i++;
+            // }
             // p_line = pline(p_line, files, command, str[0]);
             // printf("command: |%s|\n file: %s\n",p_line->command->command, p_line->file->file);
             // i = 0;
