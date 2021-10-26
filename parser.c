@@ -24,6 +24,26 @@ int     valid_quote(char *pipe)
     exit (1);
 }
 
+int     is_valide_pipe(char *pipe)
+{
+    int i;
+
+    i = 0;
+    while (pipe[i] && pipe[i] == ' ')
+        i++;
+    if (pipe[i] == '|')
+    {
+        printf("syntax error near unexpected token `|'\n");
+        exit (1);
+    }
+    if (pipe[i] == '\0')
+    {
+        printf("syntax error: Invalide pipe\n");
+        exit (1);
+    }
+    return (1);
+}
+
 int     alloc_pipe(char *pipe)
 {
     int i;
@@ -45,7 +65,7 @@ int     alloc_pipe(char *pipe)
             j = valid_quote(pipe + i);
             i = i + j + 1;
         }
-        if (pipe[i] == '|')
+        if (pipe[i] == '|' && is_valide_pipe(pipe + i + 1))
             p++;
         i++;
     }
@@ -143,15 +163,23 @@ char    *quote_handler(char *name, char *str, int *i)
 {
     char q;
     char *s;
+    char k;
 
     s = malloc(2);
     q = str[*i];
+     s[0] = str[*i];//
+     s[1] = '\0';//
+     name = ft_strjoin(name, s);//
+     k = 0;//
     (*i)++;
     while (str[*i])
     {
         if (str[*i] == q)
         {
+            
+            s[0] = str[*i];//
             (*i)++;
+            name = ft_strjoin(name, s);//
             return (name);
         }
         s[0] = str[*i];
@@ -161,7 +189,7 @@ char    *quote_handler(char *name, char *str, int *i)
     }
     if (str[*i] == '\0')
     {
-        printf("error quotes\n");
+        printf("eerror quotes\n");
         exit(0);
     }
     return (NULL);
@@ -479,11 +507,11 @@ void    reline(int sig)
     //signal(SIGINT, reline);
     //write(2, "\r",1);
     rl_on_new_line();
-    rl_replace_line("shell",STDIN_FILENO);
+    //rl_replace_line("shell",STDIN_FILENO);
     rl_redisplay();
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **env)
 {
     int     i;
     char **str;
@@ -520,31 +548,31 @@ int main(int argc, char **argv)
                 p_line = pline(p_line, files, command, str[i]);
                 i++;
             }
-            i = 0;
+            i = 1;
             // while (env[i])
             //     printf("%s\n",env[i++]);
-            cmd = getenv(line);
-            printf("env var: %s\n", cmd);
-            // while (p_line)
-            // {
-            //     printf("pipeline N %d: \n",i);
-            //     j = 1;
-            //     while (p_line->command)
-            //     {
-            //         printf("    command N %d: %s\n",j,p_line->command->command);
-            //         p_line->command = p_line->command->next;
-            //         j++;
-            //     }
-            //     j = 0;
-            //     while (p_line->file)
-            //     {
-            //         printf("    file N %d: %s\n",j,p_line->file->file);
-            //         p_line->file = p_line->file->next;
-            //         j++;
-            //     }
-            //     p_line = p_line->next;
-            //     i++;
-            // }
+            // cmd = env_var(env, line);
+            // printf("env var: %s\n", cmd);
+            while (p_line)
+            {
+                printf("pipeline N %d: \n",i);
+                j = 1;
+                while (p_line->command)
+                {
+                    printf("    command N %d: %s\n",j,p_line->command->command);
+                    p_line->command = p_line->command->next;
+                    j++;
+                }
+                j = 0;
+                while (p_line->file)
+                {
+                    printf("    file N %d: %s Type %d\n",j,p_line->file->file, p_line->file->type);
+                    p_line->file = p_line->file->next;
+                    j++;
+                }
+                p_line = p_line->next;
+                i++;
+            }
             // p_line = pline(p_line, files, command, str[0]);
             // printf("command: |%s|\n file: %s\n",p_line->command->command, p_line->file->file);
             // i = 0;
@@ -569,3 +597,16 @@ int main(int argc, char **argv)
     }
     return (0);
 }
+/*
+linked list :
+            var=dddddd
+            var
+            ddddddd
+
+char *expand(char *old_token);
+linked_list clone_env(char **env);
+add_env to linkedlist
+remove env linkedlist
+search env in linked list
+conver env to char ** in this format xx=ddddd
+*/
