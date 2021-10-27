@@ -511,6 +511,89 @@ void    reline(int sig)
     rl_redisplay();
 }
 
+// t_env_var   *search_env_var(t_env_var *env, char *key)
+// {
+
+// }
+
+t_env_var   *remove_env_var(t_env_var *env, char *key)
+{
+    t_env_var *tmp;
+    t_env_var *prev;
+    int l;
+
+    l = strlen(key);
+    tmp = env;
+    if (tmp != NULL && strcmp(tmp->value, key) == 0)
+    {
+        env = tmp->next;
+    }
+    while (tmp && strcmp(tmp->value, key) != 0)
+    {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+    if (tmp == NULL)
+    {
+        printf("There's no environment variable named %s\n",key);
+        exit(1);
+    }
+    prev->next = tmp->next;
+    free(tmp);
+    return (env);
+}
+
+t_env_var   *add_var_to_env(t_env_var *env, char *var)
+{
+    t_env_var *new;
+
+    new = (t_env_var *)malloc(sizeof(t_env_var));
+    new->env = strdup(var);
+    new->var = strchr(var, '=') + 1;
+    var[strlen(var) - strlen(strchr(var, '='))] = '\0';
+    new->value = var;
+    new->next = env;
+    return (new);
+}
+
+t_env_var   *clone_env(t_env_var *env_var, char **env)
+{
+    int i;
+
+    i = 0;
+    while (env[i])
+    {
+        env_var = add_var_to_env(env_var, env[i]);
+        i++;
+    }
+    return (env_var);
+}
+
+char    **environment_var(t_env_var *environment)
+{
+    char **env;
+    t_env_var *tmp;
+    int i;
+
+    tmp = environment;
+    int len;
+    while (tmp)
+    {
+        tmp = tmp->next;
+        len++;
+    }
+    env = (char **)malloc(sizeof(char*) * len);
+    i = 0;
+    while (environment)
+    {
+        env[i] = environment->env;
+        environment = environment->next;
+        i++;
+    }
+    env[i] = NULL;
+    return (env);
+}
+
 int main(int argc, char **argv, char **env)
 {
     int     i;
@@ -520,8 +603,11 @@ int main(int argc, char **argv, char **env)
     t_file *files;
     t_command *command;
     t_pline *p_line;
+    t_env_var *en;
+    t_env_var *tmp;
+    char **aff;
     
-
+    en = NULL;
     p_line = NULL;
     command = NULL;
     char *cmd;
@@ -530,7 +616,7 @@ int main(int argc, char **argv, char **env)
     files = NULL;
         
     
-    signal(SIGINT, reline);
+    //signal(SIGINT, reline);
     while (1)
     {
         line = readline("shell> ");
@@ -548,31 +634,63 @@ int main(int argc, char **argv, char **env)
                 p_line = pline(p_line, files, command, str[i]);
                 i++;
             }
-            i = 1;
+            en = clone_env(en, env);
+            // tmp = en;
+            // while (en)
+            // {
+            //     printf("env: %s key: %s var: %s\n", en->env, en->value, en->var);
+            //     en = en->next;
+            // }
+            cmd = strdup("slimane=kajdsbnnkjdas");
+            printf ("******************************************\n");
+            en = add_var_to_env(en, cmd);
+            aff = environment_var(en);
+            i = 0;
+            // printf("-- |%s|\n", aff[0]);
+            while (aff[i])
+            {
+                printf("-- |%s|\n", aff[i]);
+                i++;
+            }
+            tmp = en;
+            while (tmp)
+            {
+                printf("env: |%s| key: |%s| var: |%s|\n", tmp->env, tmp->value, tmp->var);
+                tmp = tmp->next;
+            }
+            cmd = strdup("slimane");
+            printf("adddddiiiiiiiing\n");
+            en = remove_env_var(en, cmd);
+            tmp = en;
+            while (tmp)
+            {
+                printf("env: |%s| key: |%s| var: |%s|\n", tmp->env, tmp->value, tmp->var);
+                tmp = tmp->next;
+            }
             // while (env[i])
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
-            while (p_line)
-            {
-                printf("pipeline N %d: \n",i);
-                j = 1;
-                while (p_line->command)
-                {
-                    printf("    command N %d: %s\n",j,p_line->command->command);
-                    p_line->command = p_line->command->next;
-                    j++;
-                }
-                j = 0;
-                while (p_line->file)
-                {
-                    printf("    file N %d: %s Type %d\n",j,p_line->file->file, p_line->file->type);
-                    p_line->file = p_line->file->next;
-                    j++;
-                }
-                p_line = p_line->next;
-                i++;
-            }
+            // while (p_line)
+            // {
+            //     printf("pipeline N %d: \n",i);
+            //     j = 1;
+            //     while (p_line->command)
+            //     {
+            //         printf("    command N %d: %s\n",j,p_line->command->command);
+            //         p_line->command = p_line->command->next;
+            //         j++;
+            //     }
+            //     j = 0;
+            //     while (p_line->file)
+            //     {
+            //         printf("    file N %d: %s Type %d\n",j,p_line->file->file, p_line->file->type);
+            //         p_line->file = p_line->file->next;
+            //         j++;
+            //     }
+            //     p_line = p_line->next;
+            //     i++;
+            // }
             // p_line = pline(p_line, files, command, str[0]);
             // printf("command: |%s|\n file: %s\n",p_line->command->command, p_line->file->file);
             // i = 0;

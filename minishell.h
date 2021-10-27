@@ -41,6 +41,14 @@ typedef struct s_pipe
     struct s_pipe   *next;
 }               t_pipe;
 
+typedef struct s_env_var
+{
+    char *env;
+    char *var;
+    char *value;
+    struct s_env_var *next;
+}               t_env_var;
+
 typedef struct s_line
 {
     t_pline *pipe_line;
