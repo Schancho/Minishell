@@ -526,7 +526,9 @@ t_env_var   *remove_env_var(t_env_var *env, char *key)
     tmp = env;
     if (tmp != NULL && strcmp(tmp->value, key) == 0)
     {
-        env = tmp->next;
+        env = env->next;
+        free(tmp);
+        return (env);
     }
     while (tmp && strcmp(tmp->value, key) != 0)
     {
