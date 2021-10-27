@@ -520,9 +520,7 @@ t_env_var   *remove_env_var(t_env_var *env, char *key)
 {
     t_env_var *tmp;
     t_env_var *prev;
-    int l;
 
-    l = strlen(key);
     tmp = env;
     if (tmp != NULL && strcmp(tmp->value, key) == 0)
     {
@@ -596,6 +594,7 @@ char    **environment_var(t_env_var *environment)
     return (env);
 }
 
+//expander()
 int main(int argc, char **argv, char **env)
 {
     int     i;
