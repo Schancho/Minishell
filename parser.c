@@ -370,7 +370,7 @@ char    *delete_red(char *str)
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
-    while (str[i])
+    while (str[i] != '\0')
     {
         if (str[i] == 34 || str[i] == 39)
         {
@@ -384,6 +384,7 @@ char    *delete_red(char *str)
                 i++;
                 while (str[i] != q)
                 {
+                    
                     s[0] = str[i];
                     if (str[i] != q)
                         ret = ft_strjoin(ret, s);
@@ -392,14 +393,17 @@ char    *delete_red(char *str)
                 s[0] = str[i];
                 ret = ft_strjoin(ret, s);
                 i++;
+                
             }
         }
         else if (is_redirection(str[i]))
         {
+            
             i++;
             if (is_redirection(str[i]))
                 i++;
             i = skip_redirection(str, i) ;
+            
         }
         else
         {
@@ -407,6 +411,7 @@ char    *delete_red(char *str)
             ret = ft_strjoin(ret, s);
             i++;
         }
+        
     }
     return (ret);
 }
@@ -486,18 +491,18 @@ t_line  *command_line(t_line *line, t_pline *pipe)
     return (line);  
 }
 
-char    *env_var(char **env, char *str)
+char    *search_env_var(t_env_var *env, char *str)
 {
     int i;
     int l;
 
     i = 0;
     l = strlen(str);
-    while (env[i])
+    while (env)
     {
-        if (strncmp(env[i], str, l) == 0 && env[i][l] == '=')
-            return (env[i] + l + 1);
-        i++;
+        if (strncmp(env->env, str, l) == 0 && env->env[l] == '=')
+            return (env->env + l + 1);
+        env = env->next;
     }
     return (NULL);
 }
@@ -594,7 +599,109 @@ char    **environment_var(t_env_var *environment)
     return (env);
 }
 
-//expander()
+int     is_alpha_num(char c)
+{
+    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+        return (1);
+    return (0);
+}
+
+int     skip_env(char *str)
+{
+    int i;
+
+    i = 0;
+    while (is_alpha_num(str[i]))
+        i++;
+    return i;
+
+}
+
+char    *get_env_va(char *str)
+{
+    int i;
+    char *ret;
+    char *s;
+    s = malloc(2);
+    ret = malloc(1);
+    s[1] = '\0';
+    ret[0] = '\0';
+    i = 0;
+    while (is_alpha_num(str[i]) == 1)
+    {
+        s[0] = str[i];
+        ret = ft_strjoin(ret, s);
+        i++;
+    }
+    return (ret);
+}
+
+char    *expander(t_env_var *env, char *str)
+{
+    char *ret;
+    char *s;
+    int i;
+    char q;
+
+    ret = malloc(1);
+    s = malloc(2);
+    s[1] = '\0';
+    ret[0] = '\0';
+    i = 0;
+    printf("single: %s\n", str);
+    while (str[i])
+    {
+        if (str[i] == 34 || str[i] == 39)
+        {
+            q = str[i];
+            i++;
+            if (q == 39)
+            {
+                while (str[i] != 39)
+                {
+                    s[0] = str[i]; 
+                    ret = ft_strjoin(ret, s);
+                    i++;
+                }
+            }
+            else
+            {
+                while (str[i] != q)
+                {
+                    if (str[i] == '$' && str[i + 1] != '$')
+                    {
+                        ret = search_env_var(env, get_env_va(str + i + 1));
+                        i = skip_env(str + i + 1) + i + 1;
+                    }
+                    else
+                    {
+                        s[0] = str[i];
+                        ret = ft_strjoin(ret, s);
+                    }
+                    i++;
+                }
+            }
+            if (str[i] == '\0')
+                return (ret);
+            i++;
+        }
+        if (str[i] == '$' && str[i + 1] != '$')
+        {
+            ret = search_env_var(env, get_env_va(str + i + 1));
+            i = skip_env(str + i + 1) + i;
+        }
+        else
+        {
+            s[0] = str[i];
+            ret = ft_strjoin(ret, s);
+        }
+        if (str[i] == '\0')
+                return (ret);
+        i++;
+    }
+    return (ret);
+}
+
 int main(int argc, char **argv, char **env)
 {
     int     i;
@@ -606,9 +713,11 @@ int main(int argc, char **argv, char **env)
     t_pline *p_line;
     t_env_var *en;
     t_env_var *tmp;
+    t_pline *temp;
     char **aff;
+    char *test;
     
-    en = NULL;
+    
     p_line = NULL;
     command = NULL;
     char *cmd;
@@ -627,6 +736,7 @@ int main(int argc, char **argv, char **env)
             ;
         else
         {
+            en = NULL;
             add_history(line);
             str = split_pipe(line);
             i = 0;
@@ -635,43 +745,48 @@ int main(int argc, char **argv, char **env)
                 p_line = pline(p_line, files, command, str[i]);
                 i++;
             }
-            en = clone_env(en, env);
+             en = clone_env(en, env);
+           // cmd = strdup("ef")
+            // cmd = expander(en, argv[1]);
             // tmp = en;
-            // while (en)
+            // while (tmp)
             // {
-            //     printf("env: %s key: %s var: %s\n", en->env, en->value, en->var);
-            //     en = en->next;
+            //     printf("env: %s key: %s var: %s\n", tmp->env, tmp->value, tmp->var);
+            //     tmp = tmp->next;
             // }
-            cmd = strdup("slimane=kajdsbnnkjdas");
-            printf ("******************************************\n");
-            en = add_var_to_env(en, cmd);
-            aff = environment_var(en);
-            i = 0;
-            // printf("-- |%s|\n", aff[0]);
-            while (aff[i])
-            {
-                printf("-- |%s|\n", aff[i]);
-                i++;
-            }
-            tmp = en;
-            while (tmp)
-            {
-                printf("env: |%s| key: |%s| var: |%s|\n", tmp->env, tmp->value, tmp->var);
-                tmp = tmp->next;
-            }
-            cmd = strdup("slimane");
-            printf("adddddiiiiiiiing\n");
-            en = remove_env_var(en, cmd);
-            tmp = en;
-            while (tmp)
-            {
-                printf("env: |%s| key: |%s| var: |%s|\n", tmp->env, tmp->value, tmp->var);
-                tmp = tmp->next;
-            }
+            // cmd = strdup("slimane=kajdsbnnkjdas");
+            // printf ("******************************************\n");
+            // en = add_var_to_env(en, cmd);
+            // aff = environment_var(en);
+            // i = 0;
+            // // printf("-- |%s|\n", aff[0]);
+            // while (aff[i])
+            // {
+            //     printf("-- |%s|\n", aff[i]);
+            //     i++;
+            // }
+            // tmp = en;
+            // while (tmp)
+            // {
+            //     printf("env: |%s| key: |%s| var: |%s|\n", tmp->env, tmp->value, tmp->var);
+            //     tmp = tmp->next;
+            // }
+            // test = search_env_var(en, "slimane");
+            // printf("test: %s\n", test);
+            // cmd = strdup("slimane");
+            // printf("adddddiiiiiiiing\n");
+            // en = remove_env_var(en, cmd);
+            // tmp = en;
+            // while (tmp)
+            // {
+            //     printf("env: |%s| key: |%s| var: |%s|\n", tmp->env, tmp->value, tmp->var);
+            //     tmp = tmp->next;
+            // }
             // while (env[i])
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
+            //temp = p_line;
             // while (p_line)
             // {
             //     printf("pipeline N %d: \n",i);
@@ -692,6 +807,9 @@ int main(int argc, char **argv, char **env)
             //     p_line = p_line->next;
             //     i++;
             // }
+            cmd = expander(en, p_line->file->file);
+            printf("var : %s\n", cmd);
+            //p_line = temp;
             // p_line = pline(p_line, files, command, str[0]);
             // printf("command: |%s|\n file: %s\n",p_line->command->command, p_line->file->file);
             // i = 0;
@@ -720,7 +838,7 @@ int main(int argc, char **argv, char **env)
 linked list :
             var=dddddd
             var
-            ddddddd
+            dddddd
 
 char *expand(char *old_token);
 linked_list clone_env(char **env);

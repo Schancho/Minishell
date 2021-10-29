@@ -17,7 +17,7 @@ int	ft_wdcounter(char const *str, char c)
 			words++;
 		while (str[i] != c && str[i] != '\0')
 		{
-			if (str[i] == 34 || str[i] == 39)
+			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
 			{
 				q = str[i++];
 				while (str[i] != q)
@@ -51,9 +51,10 @@ static char	**memory_giver(char const *str, char c)
 		while (str[i] != c && str[i] != '\0')
 		{
 			//letters++;
-			if (str[i] == 34 || str[i] == 39)
+			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
 			{
 				q = str[i++];
+				letters += 2;
 				while (str[i] != q)
 				{
 					i++;
@@ -98,12 +99,14 @@ char	**ft_split(char const *str, char c)
 		j = 0;
 		while (str[i] != c && str[i])
 		{
-			if (str[i] == 34 || str[i] == 39)
+			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
 			{
-				q = str[i++];
+				q = str[i];
+				res[str_number][j++] = str[i++];
 				while (str[i] != q)
 					res[str_number][j++] = str[i++];
-				i++;
+				res[str_number][j++] = str[i++];
+				//i++;
 			}
 			else
 				res[str_number][j++] = str[i++];
