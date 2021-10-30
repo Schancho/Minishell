@@ -376,7 +376,12 @@ char    *delete_red(char *str)
         {
             q = str[i];
             if (str[i + 1] == q)
+            {
+                s[0] = str[i];
+                ret = ft_strjoin(ret, s);
+                ret = ft_strjoin(ret, s);
                 i = i + 2;
+            }
             else
             {
                 s[0] = str[i];
@@ -439,6 +444,7 @@ t_command   *get_command(t_command *cmd, char *command)
     int i;
 
     i = 0;
+    printf ("pipe: %s\n", delete_red(command));
     str = ft_split(delete_red(command), ' ');
     while (str[i])
     {
@@ -611,7 +617,7 @@ int     skip_env(char *str)
     int i;
 
     i = 0;
-    while (is_alpha_num(str[i]))
+    while (is_alpha_num(str[i]) || str[i] == '_')
         i++;
     return i;
 
@@ -627,7 +633,7 @@ char    *get_env_va(char *str)
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
-    while (is_alpha_num(str[i]) == 1)
+    while (is_alpha_num(str[i]) == 1 || str[i] == '_')
     {
         s[0] = str[i];
         ret = ft_strjoin(ret, s);
@@ -648,10 +654,9 @@ char    *expander(t_env_var *env, char *str)
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
-    printf("single: %s\n", str);
     while (str[i])
     {
-        if (str[i] == 34 || str[i] == 39)
+        if (str[i] && str[i] == 34 || str[i] == 39)
         {
             q = str[i];
             i++;
@@ -666,7 +671,7 @@ char    *expander(t_env_var *env, char *str)
             }
             else
             {
-                while (str[i] != q)
+                while (str[i] && str[i] != q)
                 {
                     if (str[i] == '$' && str[i + 1] != '$')
                     {
@@ -679,6 +684,7 @@ char    *expander(t_env_var *env, char *str)
                         ret = ft_strjoin(ret, s);
                     }
                     i++;
+                    printf("quote: |%s|\n",str + i);
                 }
             }
             if (str[i] == '\0')
@@ -689,6 +695,8 @@ char    *expander(t_env_var *env, char *str)
         {
             ret = search_env_var(env, get_env_va(str + i + 1));
             i = skip_env(str + i + 1) + i;
+            printf("qq |%c|\n",str[i]);
+
         }
         else
         {
@@ -700,6 +708,33 @@ char    *expander(t_env_var *env, char *str)
         i++;
     }
     return (ret);
+}
+
+t_pline     *expansion(t_env_var *env, t_pline *line)
+{
+    t_pline *tmp;
+    t_file *file;
+    t_command *cmd;
+    tmp = line;
+    while (tmp)
+    {
+        cmd = tmp->command;
+        while (cmd)
+        {
+            //printf("--%s\n",cmd->command);
+            cmd->command = expander(env, cmd->command);
+            //printf("--%s\n",cmd->command);
+            cmd = cmd->next;
+        }
+        file = tmp->file;
+        while (file)
+        {
+            file->file = expander(env, file->file);
+            file = file->next;
+        }
+        tmp = tmp->next;
+    }
+    return (line);
 }
 
 int main(int argc, char **argv, char **env)
@@ -727,6 +762,8 @@ int main(int argc, char **argv, char **env)
         
     
     //signal(SIGINT, reline);
+    en = NULL;
+    en = clone_env(en, env);
     while (1)
     {
         line = readline("shell> ");
@@ -736,7 +773,6 @@ int main(int argc, char **argv, char **env)
             ;
         else
         {
-            en = NULL;
             add_history(line);
             str = split_pipe(line);
             i = 0;
@@ -745,7 +781,8 @@ int main(int argc, char **argv, char **env)
                 p_line = pline(p_line, files, command, str[i]);
                 i++;
             }
-             en = clone_env(en, env);
+            p_line = expansion(en, p_line);
+
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;
@@ -786,29 +823,30 @@ int main(int argc, char **argv, char **env)
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
-            //temp = p_line;
-            // while (p_line)
-            // {
-            //     printf("pipeline N %d: \n",i);
-            //     j = 1;
-            //     while (p_line->command)
-            //     {
-            //         printf("    command N %d: %s\n",j,p_line->command->command);
-            //         p_line->command = p_line->command->next;
-            //         j++;
-            //     }
-            //     j = 0;
-            //     while (p_line->file)
-            //     {
-            //         printf("    file N %d: %s Type %d\n",j,p_line->file->file, p_line->file->type);
-            //         p_line->file = p_line->file->next;
-            //         j++;
-            //     }
-            //     p_line = p_line->next;
-            //     i++;
-            // }
-            cmd = expander(en, p_line->file->file);
-            printf("var : %s\n", cmd);
+            temp = p_line;
+            i = 1;
+            while (p_line)
+            {
+                printf("pipeline N %d: \n",i);
+                j = 1;
+                while (p_line->command)
+                {
+                    printf("    command N %d: %s\n",j,p_line->command->command);
+                    p_line->command = p_line->command->next;
+                    j++;
+                }
+                j = 1;
+                while (p_line->file)
+                {
+                    printf("    file N %d: %s Type %d\n",j,p_line->file->file, p_line->file->type);
+                    p_line->file = p_line->file->next;
+                    j++;
+                }
+                p_line = p_line->next;
+                i++;
+            }
+            // cmd = expander(en, p_line->file->file);
+            // printf("var : %s\n", cmd);
             //p_line = temp;
             // p_line = pline(p_line, files, command, str[0]);
             // printf("command: |%s|\n file: %s\n",p_line->command->command, p_line->file->file);
@@ -831,6 +869,7 @@ int main(int argc, char **argv, char **env)
             //     files = files->next;
             // }
         }
+        //system("leaks minishell");
     }
     return (0);
 }

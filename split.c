@@ -9,23 +9,35 @@ int	ft_wdcounter(char const *str, char c)
 
 	i = 0;
 	words = 0;
+
+
 	while (str[i])
 	{
 		while (str[i] == c && str[i] != '\0')
 			i++;
 		if (str[i])
 			words++;
-		while (str[i] != c && str[i] != '\0')
+		while (str[i] != c)
 		{
-			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
+		
+			if (str[i] == '\0')
+				return (words);
+			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34) && str[i + 1] != '\0' )
 			{
-				q = str[i++];
+				q = str[i];
+				i++;
 				while (str[i] != q)
 					i++;
+			
 				i++;
 			}
+			else if((str[i] == 34 && str[i + 1] == 34) || (str[i] == 39 && str[i + 1] == 34) && str[i + 1] != '\0')
+				i +=2;
 			else
 				i++;
+		
+			if (str[i] == '\0')
+				return(words);
 		}
 		test = 0;
 	}
@@ -51,16 +63,22 @@ static char	**memory_giver(char const *str, char c)
 		while (str[i] != c && str[i] != '\0')
 		{
 			//letters++;
-			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
+			if (str[i + 1] != 0 && (str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
 			{
 				q = str[i++];
-				letters += 2;
+				letters++;
 				while (str[i] != q)
 				{
 					i++;
 					letters++;
 				}
 				i++;
+				letters++;
+			}
+			else if (str[i + 1] != 0 && (str[i] == 34 && str[i + 1] == 34) || (str[i] == 39 && str[i + 1] == 34))
+			{
+				i += 2;
+				letters += 2;
 			}
 			else
 			{
@@ -71,6 +89,7 @@ static char	**memory_giver(char const *str, char c)
 		if (letters > 0)
 			res[j++] = (char *)malloc(sizeof(char) * letters + 1);
 	}
+	
 	res[j] = 0;
 	return (res);
 }
@@ -99,17 +118,26 @@ char	**ft_split(char const *str, char c)
 		j = 0;
 		while (str[i] != c && str[i])
 		{
-			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
+			if (str[i + 1] != '\0' && (str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
 			{
 				q = str[i];
 				res[str_number][j++] = str[i++];
+				//printf("str + i: %s\n", str + i);
 				while (str[i] != q)
 					res[str_number][j++] = str[i++];
 				res[str_number][j++] = str[i++];
 				//i++;
 			}
-			else
+			else if (str[i + 1] != 0 && (str[i] == 34 && str[i + 1] == 34)|| (str[i] == 39 && str[i + 1] == 34))
+			{
 				res[str_number][j++] = str[i++];
+				res[str_number][j++] = str[i++];
+			}
+			else
+			{
+				res[str_number][j++] = str[i++];
+			}
+
 		}
 		res[str_number][j] = '\0';
 		str_number++;
