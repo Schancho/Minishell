@@ -654,15 +654,17 @@ char    *expander(t_env_var *env, char *str)
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
+    printf("string: %s\n", str);
     while (str[i])
     {
-        if (str[i] && str[i] == 34 || str[i] == 39)
+        if (str[i] && (str[i] == 34 || str[i] == 39))
         {
             q = str[i];
             i++;
             if (q == 39)
             {
-                while (str[i] != 39)
+                printf("single |%s|\n", str + i);
+                while (str[i] && str[i] != 39)
                 {
                     s[0] = str[i]; 
                     ret = ft_strjoin(ret, s);
@@ -675,15 +677,18 @@ char    *expander(t_env_var *env, char *str)
                 {
                     if (str[i] == '$' && str[i + 1] != '$')
                     {
-                        ret = search_env_var(env, get_env_va(str + i + 1));
+                        if (search_env_var(env, get_env_va(str + i + 1)))
+                            ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1)));
                         i = skip_env(str + i + 1) + i + 1;
+                        printf("this quote: |%s|\n",str + i);
                     }
                     else
                     {
                         s[0] = str[i];
-                        ret = ft_strjoin(ret, s);
+                        if (s[0] != q)
+                            ret = ft_strjoin(ret, s);
+                        i++;
                     }
-                    i++;
                     printf("quote: |%s|\n",str + i);
                 }
             }
@@ -693,7 +698,8 @@ char    *expander(t_env_var *env, char *str)
         }
         if (str[i] == '$' && str[i + 1] != '$')
         {
-            ret = search_env_var(env, get_env_va(str + i + 1));
+            if (search_env_var(env, get_env_va(str + i + 1)))
+                ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1)));
             i = skip_env(str + i + 1) + i;
             printf("qq |%c|\n",str[i]);
 
@@ -701,13 +707,73 @@ char    *expander(t_env_var *env, char *str)
         else
         {
             s[0] = str[i];
-            ret = ft_strjoin(ret, s);
+            if (s[0] != 34 && s[0] != 39)
+                ret = ft_strjoin(ret, s);
         }
         if (str[i] == '\0')
                 return (ret);
         i++;
     }
+    if (ret[0] == '\0')
+        return (NULL);
     return (ret);
+}
+
+t_command   *command_delete_null(t_command *cmd)
+{
+    t_command *tmp;
+    t_command *to_delete;
+    t_command *to_delete_first;
+
+
+    tmp = cmd;
+    if (tmp && !cmd->command)
+    {
+        to_delete_first = cmd;
+        cmd = cmd->next;
+        //free(tmp);
+        
+    }
+    while (tmp)
+    {
+        if (tmp->next && tmp->next->command == NULL)
+        {
+            to_delete = tmp->next;
+            tmp->next = tmp->next->next;
+            free(to_delete);
+        }
+        else
+            tmp = tmp->next;
+    }
+    if (to_delete_first)
+        free(to_delete_first);
+    return (cmd);
+}
+
+t_file      *file_delete_null(t_file *file)
+{
+    t_file *tmp;
+    t_file *to_delete;
+
+    if (file && !file->file)
+    {
+        to_delete = file;
+        file = file->next;
+        free(to_delete);
+    }
+    tmp = file;
+    while (file)
+    {
+        if (file->next && file->next->file == NULL)
+        {
+            to_delete = tmp->next;
+            tmp->next = tmp->next->next;
+            free(to_delete);
+        }
+        else
+            tmp = tmp->next;
+    }
+    return (file);
 }
 
 t_pline     *expansion(t_env_var *env, t_pline *line)
@@ -715,6 +781,7 @@ t_pline     *expansion(t_env_var *env, t_pline *line)
     t_pline *tmp;
     t_file *file;
     t_command *cmd;
+
     tmp = line;
     while (tmp)
     {
@@ -726,12 +793,14 @@ t_pline     *expansion(t_env_var *env, t_pline *line)
             //printf("--%s\n",cmd->command);
             cmd = cmd->next;
         }
+        tmp->command = command_delete_null(tmp->command);
         file = tmp->file;
         while (file)
         {
             file->file = expander(env, file->file);
             file = file->next;
         }
+        tmp->file = file_delete_null(tmp->file);
         tmp = tmp->next;
     }
     return (line);

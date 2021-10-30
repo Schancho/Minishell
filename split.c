@@ -22,7 +22,7 @@ int	ft_wdcounter(char const *str, char c)
 		
 			if (str[i] == '\0')
 				return (words);
-			if ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34) && str[i + 1] != '\0' )
+			if (((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 39) )&& str[i + 1] != '\0' )
 			{
 				q = str[i];
 				i++;
@@ -31,7 +31,7 @@ int	ft_wdcounter(char const *str, char c)
 			
 				i++;
 			}
-			else if((str[i] == 34 && str[i + 1] == 34) || (str[i] == 39 && str[i + 1] == 34) && str[i + 1] != '\0')
+			else if(((str[i] == 34 && str[i + 1] == 34) || (str[i] == 39 && str[i + 1] == 39)) && str[i + 1] != '\0')
 				i +=2;
 			else
 				i++;
@@ -63,7 +63,7 @@ static char	**memory_giver(char const *str, char c)
 		while (str[i] != c && str[i] != '\0')
 		{
 			//letters++;
-			if (str[i + 1] != 0 && (str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
+			if (str[i + 1] != 0 && ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 39)))
 			{
 				q = str[i++];
 				letters++;
@@ -75,7 +75,7 @@ static char	**memory_giver(char const *str, char c)
 				i++;
 				letters++;
 			}
-			else if (str[i + 1] != 0 && (str[i] == 34 && str[i + 1] == 34) || (str[i] == 39 && str[i + 1] == 34))
+			else if (str[i + 1] != 0 && ((str[i] == 34 && str[i + 1] == 34) || (str[i] == 39 && str[i + 1] == 39)))
 			{
 				i += 2;
 				letters += 2;
@@ -118,7 +118,7 @@ char	**ft_split(char const *str, char c)
 		j = 0;
 		while (str[i] != c && str[i])
 		{
-			if (str[i + 1] != '\0' && (str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 34))
+			if (str[i + 1] != '\0' && ((str[i] == 34 && str[i + 1] != 34)|| (str[i] == 39 && str[i + 1] != 39)))
 			{
 				q = str[i];
 				res[str_number][j++] = str[i++];
@@ -128,7 +128,7 @@ char	**ft_split(char const *str, char c)
 				res[str_number][j++] = str[i++];
 				//i++;
 			}
-			else if (str[i + 1] != 0 && (str[i] == 34 && str[i + 1] == 34)|| (str[i] == 39 && str[i + 1] == 34))
+			else if (str[i + 1] != 0 && ((str[i] == 34 && str[i + 1] == 34)|| (str[i] == 39 && str[i + 1] == 39)))
 			{
 				res[str_number][j++] = str[i++];
 				res[str_number][j++] = str[i++];
