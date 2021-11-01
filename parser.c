@@ -6,6 +6,7 @@ int     is_redirection(char c)
         return (1);
     return (0);
 }
+//malloc;
 int     valid_quote(char *pipe)
 {
     int i;
@@ -65,9 +66,8 @@ int     alloc_pipe(char *pipe)
             j = valid_quote(pipe + i);
             i = i + j + 1;
         }
-        if (pipe[i] == '|' && is_valide_pipe(pipe + i + 1))
+        if (pipe[i++] == '|' && is_valide_pipe(pipe + i))
             p++;
-        i++;
     }
     return (p);
 }
@@ -172,26 +172,27 @@ char    *quote_handler(char *name, char *str, int *i)
      name = ft_strjoin(name, s);//
      k = 0;//
     (*i)++;
-    while (str[*i])
+    while (str[(*i)++])
     {
         if (str[*i] == q)
-        {
-            
+        {    
             s[0] = str[*i];//
             (*i)++;
             name = ft_strjoin(name, s);//
+            free(s);
             return (name);
         }
         s[0] = str[*i];
         s[1] = '\0';
         name = ft_strjoin(name, s);
-        (*i)++;
+        //(*i)++;
     }
     if (str[*i] == '\0')
     {
         printf("eerror quotes\n");
         exit(0);
     }
+    free(s);
     return (NULL);
 }
 
@@ -228,6 +229,7 @@ char    *get_file_name(char *str)
         printf("syntax error near unexpected token\n");
         exit (1);
     }
+    free(s);
     return (name);
 }
 
@@ -418,6 +420,7 @@ char    *delete_red(char *str)
         }
         
     }
+    free(s);
     return (ret);
 }
 
@@ -444,7 +447,6 @@ t_command   *get_command(t_command *cmd, char *command)
     int i;
 
     i = 0;
-    printf ("pipe: %s\n", delete_red(command));
     str = ft_split(delete_red(command), ' ');
     while (str[i])
     {
@@ -639,6 +641,7 @@ char    *get_env_va(char *str)
         ret = ft_strjoin(ret, s);
         i++;
     }
+    free(s);
     return (ret);
 }
 
@@ -654,7 +657,6 @@ char    *expander(t_env_var *env, char *str)
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
-    printf("string: %s\n", str);
     while (str[i])
     {
         if (str[i] && (str[i] == 34 || str[i] == 39))
@@ -663,7 +665,6 @@ char    *expander(t_env_var *env, char *str)
             i++;
             if (q == 39)
             {
-                printf("single |%s|\n", str + i);
                 while (str[i] && str[i] != 39)
                 {
                     s[0] = str[i]; 
@@ -680,7 +681,6 @@ char    *expander(t_env_var *env, char *str)
                         if (search_env_var(env, get_env_va(str + i + 1)))
                             ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1)));
                         i = skip_env(str + i + 1) + i + 1;
-                        printf("this quote: |%s|\n",str + i);
                     }
                     else
                     {
@@ -689,11 +689,13 @@ char    *expander(t_env_var *env, char *str)
                             ret = ft_strjoin(ret, s);
                         i++;
                     }
-                    printf("quote: |%s|\n",str + i);
                 }
             }
             if (str[i] == '\0')
+            {
+                free(s);
                 return (ret);
+            }
             i++;
         }
         if (str[i] == '$' && str[i + 1] != '$')
@@ -701,7 +703,6 @@ char    *expander(t_env_var *env, char *str)
             if (search_env_var(env, get_env_va(str + i + 1)))
                 ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1)));
             i = skip_env(str + i + 1) + i;
-            printf("qq |%c|\n",str[i]);
 
         }
         else
@@ -711,67 +712,91 @@ char    *expander(t_env_var *env, char *str)
                 ret = ft_strjoin(ret, s);
         }
         if (str[i] == '\0')
-                return (ret);
+        {
+            free(s);
+            return (ret);
+        }
         i++;
     }
     if (ret[0] == '\0')
+    {
+        free(s);
         return (NULL);
+    }
+    free(s);
     return (ret);
+}
+
+t_command   *remove_command_null_element(t_command *command)
+{
+    t_command *tmp;
+    t_command *prev;
+
+    tmp = command;
+    if (tmp != NULL && tmp->command == NULL)
+    {
+        command = command->next;
+        free(tmp);
+        return (command);
+    }
+    while (tmp && tmp->command != NULL)
+    {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+    if (tmp == NULL)
+        return (command);
+    prev->next = tmp->next;
+    free(tmp);
+    return (command);
+}
+
+t_file      *remove_file_null_element(t_file *file)
+{
+    t_file *tmp;
+    t_file *prev;
+
+    tmp = file;
+    if (tmp != NULL && tmp->file == NULL)
+    {
+        file = file->next;
+        free(tmp);
+        return (file);
+    }
+    while (tmp && tmp->file != NULL)
+    {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+    if (tmp == NULL)
+        return (file);
+    prev->next = tmp->next;
+    free(tmp);
+    return (file);
 }
 
 t_command   *command_delete_null(t_command *cmd)
 {
     t_command *tmp;
-    t_command *to_delete;
-    t_command *to_delete_first;
-
-
+    
     tmp = cmd;
-    if (tmp && !cmd->command)
-    {
-        to_delete_first = cmd;
-        cmd = cmd->next;
-        //free(tmp);
-        
-    }
     while (tmp)
     {
-        if (tmp->next && tmp->next->command == NULL)
-        {
-            to_delete = tmp->next;
-            tmp->next = tmp->next->next;
-            free(to_delete);
-        }
-        else
-            tmp = tmp->next;
+        cmd = remove_command_null_element(cmd);
+        tmp = tmp->next;
     }
-    if (to_delete_first)
-        free(to_delete_first);
     return (cmd);
 }
 
 t_file      *file_delete_null(t_file *file)
 {
     t_file *tmp;
-    t_file *to_delete;
-
-    if (file && !file->file)
-    {
-        to_delete = file;
-        file = file->next;
-        free(to_delete);
-    }
+    
     tmp = file;
-    while (file)
+    while (tmp)
     {
-        if (file->next && file->next->file == NULL)
-        {
-            to_delete = tmp->next;
-            tmp->next = tmp->next->next;
-            free(to_delete);
-        }
-        else
-            tmp = tmp->next;
+        file = remove_file_null_element(file);
+        tmp = tmp->next;
     }
     return (file);
 }
@@ -788,9 +813,7 @@ t_pline     *expansion(t_env_var *env, t_pline *line)
         cmd = tmp->command;
         while (cmd)
         {
-            //printf("--%s\n",cmd->command);
             cmd->command = expander(env, cmd->command);
-            //printf("--%s\n",cmd->command);
             cmd = cmd->next;
         }
         tmp->command = command_delete_null(tmp->command);
@@ -800,8 +823,9 @@ t_pline     *expansion(t_env_var *env, t_pline *line)
             file->file = expander(env, file->file);
             file = file->next;
         }
-        tmp->file = file_delete_null(tmp->file);
-        tmp = tmp->next;
+        tmp->file = tmp->file;
+        if (tmp)
+            tmp = tmp->next;
     }
     return (line);
 }
@@ -894,26 +918,54 @@ int main(int argc, char **argv, char **env)
             // printf("env var: %s\n", cmd);
             temp = p_line;
             i = 1;
-            while (p_line)
+            while (temp)
             {
                 printf("pipeline N %d: \n",i);
                 j = 1;
-                while (p_line->command)
+                while (temp->command)
                 {
-                    printf("    command N %d: %s\n",j,p_line->command->command);
-                    p_line->command = p_line->command->next;
+                    printf("    command N %d: %s\n",j,temp->command->command);
+                    temp->command = temp->command->next;
                     j++;
                 }
                 j = 1;
-                while (p_line->file)
+                while (temp->file)
                 {
-                    printf("    file N %d: %s Type %d\n",j,p_line->file->file, p_line->file->type);
-                    p_line->file = p_line->file->next;
+                    printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
+                    temp->file = temp->file->next;
                     j++;
                 }
-                p_line = p_line->next;
+                temp = temp->next;
                 i++;
             }
+            i = 0;
+            while (str[i])
+            {
+                free(str[i]);
+                i++;
+            }
+            free(str);
+            temp = p_line;
+            while (temp)
+            {
+                while (temp->command)
+                {
+                    free(temp->command->command);
+                    temp->command = temp->command->next;
+                    j++;
+                }
+                free(temp->command);
+                while (temp->file)
+                {
+                    free(temp->file->file);
+                    temp->file = temp->file->next;
+                }
+                free(temp->file);
+                temp = temp->next;
+            }
+            free(temp);
+            //free(p_line);
+            //str = NULL;
             // cmd = expander(en, p_line->file->file);
             // printf("var : %s\n", cmd);
             //p_line = temp;
@@ -937,8 +989,9 @@ int main(int argc, char **argv, char **env)
             //     printf("type = %d file_name = %s\n",files->type, files->file);
             //     files = files->next;
             // }
+
         }
-        //system("leaks minishell");
+        system("leaks minishell");
     }
     return (0);
 }
