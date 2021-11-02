@@ -18,7 +18,6 @@ int execution(t_pline *p_line, char **env)
     iter = p_line;
     while (iter->next)
     {
-        printf("debug\n");
         pipe(fd);
         pid = fork();
         if (pid == 0)
