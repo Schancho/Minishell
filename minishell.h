@@ -58,4 +58,10 @@ char    **split_pipe(char *line);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	**ft_split(char const *str, char c);
 
+
+
+
+
+int execution(t_pline *p_line, char **env);
+
 #endif

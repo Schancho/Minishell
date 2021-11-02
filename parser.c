@@ -875,7 +875,7 @@ int main(int argc, char **argv, char **env)
                 i++;
             }
             p_line = expansion(en, p_line);
-
+            execution(p_line, (char **)env);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;
@@ -991,7 +991,7 @@ int main(int argc, char **argv, char **env)
             // }
 
         }
-        system("leaks minishell");
+        // system("leaks minishell");
     }
     return (0);
 }
