@@ -15,6 +15,7 @@ typedef enum e_file_type
         F_HEREDOC = 3,
         F_APPEND = 4
 }           t_file_type;
+
 typedef struct  s_file
 {
     t_file_type type;
