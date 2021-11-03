@@ -861,6 +861,40 @@ t_pline     *expansion(t_env_var *env, t_pline *line, t_garbage **g)
     return (line);
 }
 
+char    *conv_cmd(t_command *cmd)
+{
+    char **str;
+    int i;
+
+    i = 0;
+    while (cmd)
+    {
+        str[i] = cmd->command;
+        i++;
+        cmd = cmd->next;
+    }
+    str[i] = 0;
+    return str;
+}
+
+t_line  *c_line(t_pline *p_line, t_garbage **g)
+{
+    t_line  *line;
+    t_line  *l_tmp;
+    t_pline *p_tmp;
+
+    
+    p_tmp = p_line;
+    while (p_tmp)
+    {
+        l_tmp->file = p_line->file;
+        l_tmp->command = conv_cmd(p_line->command);
+        l_tmp = l_tmp->next;
+        p_line = p_line->next;
+    }
+
+}
+
 int main(int argc, char **argv, char **env)
 {
     int     i;
@@ -876,6 +910,7 @@ int main(int argc, char **argv, char **env)
     char **aff;
     char *test;
     t_garbage *g;
+    t_line  *command_line;
     
     
     p_line = NULL;
@@ -907,7 +942,8 @@ int main(int argc, char **argv, char **env)
                 i++;
             }
             p_line = expansion(en, p_line, &g);
-            execution(p_line, (char **)env, en);
+            command_line = c_line(p_line, &g);
+            //execution(p_line, (char **)env);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;
