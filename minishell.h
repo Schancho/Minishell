@@ -69,7 +69,7 @@ char    *ft_strjoin(char const *s1, char const *s2, t_garbage **g);
 char	**ft_split(char const *str, char c, t_garbage **g);
 void        garbage(t_garbage **garbage, void *address);
 char    **environment_var(t_env_var *environment, t_garbage **g);
-int execution(t_pline *p_line, t_env_var *env, t_garbage **g);
+int execution(t_pline *p_line,char **env, t_env_var *envv, t_garbage **g);
 char    **_split(char const *str, char c);
 char    *_strjoin(char const *s1, char const *s2);
 char    *search_env_var(t_env_var *env, char *str);

@@ -5,7 +5,7 @@
 
 // }
 
-int execution(t_pline *p_line, t_env_var *env, t_garbage **g)
+int execution(t_pline *p_line,char **env, t_env_var *envv, t_garbage **g)
 {
     int in;
     int out;
@@ -14,12 +14,12 @@ int execution(t_pline *p_line, t_env_var *env, t_garbage **g)
     t_pline *iter;
     pid_t pid;
 	char *path;
-    char **envv;
+    char **envvv;
     int waits;
 
 
     iter = p_line;
-	envv = environment_var(env, g);
+	// envvv = environment_var(envv, g);
     out = dup(STDOUT_FILENO);
     in = dup(STDIN_FILENO);
     waits = 0;
@@ -39,12 +39,12 @@ int execution(t_pline *p_line, t_env_var *env, t_garbage **g)
                 dup2(fd[0], STDIN_FILENO);
             close(fd[0]);
             close(fd[1]);
-			path = path_finder(iter->command->command, env);//check if path true
+			path = path_finder(iter->command->command, envv);//check if path true
 			char **ptr = malloc(sizeof(char *) * 3);
             ptr[2] = NULL;
             ptr[0] = iter->command->command;
             ptr[1] = iter->command->next->command;
-            execve(path, ptr , envv);
+            execve(path, ptr , env);
             exit(0);
         }
         else
