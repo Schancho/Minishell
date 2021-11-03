@@ -155,7 +155,6 @@ char    **split_pipe(char *line, t_garbage **g)
     
     j = 0;
     k = alloc_pipe(line);
-    printf ("%d\n", k);
     pipes = (char**)malloc(sizeof(char*) * (k + 1));
     garbage(g, pipes);
     i = 0;
@@ -308,13 +307,13 @@ t_file    *file(t_file *files, char *command, t_garbage **g)
         else if (command[i] == '>')
         {
             i += 1;
-            files = file_add(files, command + i, 1, g);
+            files = file_add(files, command + i, 2, g);
             k = 1;
         }
         else if (command[i] == '<')
         {
             i += 1;
-            files = file_add(files, command + i, 2, g);
+            files = file_add(files, command + i, 1, g);
             k = 1;
         }
         if (k != 1)
@@ -948,28 +947,28 @@ int main(int argc, char **argv, char **env)
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
-            temp = p_line;
-            i = 1;
-            while (temp)
-            {
-                printf("pipeline N %d: \n",i);
-                j = 1;
-                while (temp->command)
-                {
-                    printf("    command N %d: %s\n",j,temp->command->command);
-                    temp->command = temp->command->next;
-                    j++;
-                }
-                j = 1;
-                while (temp->file)
-                {
-                    printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
-                    temp->file = temp->file->next;
-                    j++;
-                }
-                temp = temp->next;
-                i++;
-            }
+            // temp = p_line;
+            // i = 1;
+            // while (temp)
+            // {
+            //     printf("pipeline N %d: \n",i);
+            //     j = 1;
+            //     while (temp->command)
+            //     {
+            //         printf("    command N %d: %s\n",j,temp->command->command);
+            //         temp->command = temp->command->next;
+            //         j++;
+            //     }
+            //     j = 1;
+            //     while (temp->file)
+            //     {
+            //         printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
+            //         temp->file = temp->file->next;
+            //         j++;
+            //     }
+            //     temp = temp->next;
+            //     i++;
+            // }
             // i = 0;
             // while (str[i])
             // {
@@ -1021,7 +1020,8 @@ int main(int argc, char **argv, char **env)
             //     printf("type = %d file_name = %s\n",files->type, files->file);
             //     files = files->next;
             // }
-            //free(line);
+            p_line = NULL;
+            free(line);
 
         }
         //system("leaks minishell");

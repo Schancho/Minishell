@@ -8,7 +8,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <sys/stat.h>
-
+#include <fcntl.h>
+#include <errno.h>
 typedef enum e_file_type
 {
         F_INPUT = 1,
@@ -78,5 +79,6 @@ char    *_strjoin(char const *s1, char const *s2);
 char    *search_env_var(t_env_var *env, char *str);
 char    *path_finder(char *key, t_env_var *lenv);
 size_t  ft_strlen(const char *s);
+int     files_io_redirecions(int *fd, t_file * iter, int *red);
 
 #endif
