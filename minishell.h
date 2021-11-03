@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <sys/stat.h>
 
 typedef enum e_file_type
 {
@@ -55,14 +56,22 @@ typedef struct s_line
     t_pline *pipe_line;
     struct s_line *next;
 }               t_line;
+
 char    **split_pipe(char *line);
-char	*ft_strjoin(char const *s1, char const *s2);
 char	**ft_split(char const *str, char c);
+char    *search_env_var(t_env_var *env, char *str);
+char    **environment_var(t_env_var *environment);
 
 
 
+//Execution Functions
+// int		execution(t_pline *p_line, t_env_var *env);
+int		execution(t_pline *p_line,char **env, t_env_var *lenv);
+char	*path_finder(char *key, t_env_var *lenv);
 
-
-int execution(t_pline *p_line, char **env);
+//Execution utils Functions
+char	**_split(char const *str, char c);
+char	*ft_strjoin(char const *s1, char const *s2);
+size_t	ft_strlen(const char *s);
 
 #endif

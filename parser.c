@@ -144,7 +144,7 @@ char    **split_pipe(char *line)
     
     j = 0;
     k = alloc_pipe(line);
-    printf ("%d\n", k);
+    // printf ("%d\n", k);
     pipes = (char**)malloc(sizeof(char*) * (k + 1));
     i = 0;
     m = 0;
@@ -515,14 +515,6 @@ char    *search_env_var(t_env_var *env, char *str)
     return (NULL);
 }
 
-void    reline(int sig)
-{
-    //signal(SIGINT, reline);
-    //write(2, "\r",1);
-    rl_on_new_line();
-    //rl_replace_line("shell",STDIN_FILENO);
-    rl_redisplay();
-}
 
 // t_env_var   *search_env_var(t_env_var *env, char *key)
 // {
@@ -875,7 +867,7 @@ int main(int argc, char **argv, char **env)
                 i++;
             }
             p_line = expansion(en, p_line);
-            execution(p_line, (char **)env);
+            execution(p_line, env, en);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;
@@ -916,28 +908,28 @@ int main(int argc, char **argv, char **env)
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
-            temp = p_line;
-            i = 1;
-            while (temp)
-            {
-                printf("pipeline N %d: \n",i);
-                j = 1;
-                while (temp->command)
-                {
-                    printf("    command N %d: %s\n",j,temp->command->command);
-                    temp->command = temp->command->next;
-                    j++;
-                }
-                j = 1;
-                while (temp->file)
-                {
-                    printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
-                    temp->file = temp->file->next;
-                    j++;
-                }
-                temp = temp->next;
-                i++;
-            }
+            // temp = p_line;
+            // i = 1;
+            // while (temp)
+            // {
+            //     printf("pipeline N %d: \n",i);
+            //     j = 1;
+            //     while (temp->command)
+            //     {
+            //         printf("    command N %d: %s\n",j,temp->command->command);
+            //         temp->command = temp->command->next;
+            //         j++;
+            //     }
+            //     j = 1;
+            //     while (temp->file)
+            //     {
+            //         printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
+            //         temp->file = temp->file->next;
+            //         j++;
+            //     }
+            //     temp = temp->next;
+            //     i++;
+            // }
             i = 0;
             while (str[i])
             {
@@ -963,6 +955,7 @@ int main(int argc, char **argv, char **env)
                 free(temp->file);
                 temp = temp->next;
             }
+			p_line = NULL;
             free(temp);
             //free(p_line);
             //str = NULL;
