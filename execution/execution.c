@@ -18,17 +18,6 @@ int execution(t_pline *p_line,char **env, t_env_var *lenv)
     pid_t pid;
 	char *path;
 
-	//TO FIX
-	// char **envv;
-	// envv = environment_var(env);
-	// int i;
-	// i = 0;
-	// // printf("-- |%s|\n", aff[0]);
-	// while (envv[i])
-	// {
-	// 	printf("-- |%s|\n", envv[i]);
-	// 	i++;
-	// }
 
     out = dup(STDOUT_FILENO);
     in = dup(STDIN_FILENO);
