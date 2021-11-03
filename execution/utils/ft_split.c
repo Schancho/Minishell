@@ -47,7 +47,7 @@ static char	**_memory_giver(char const *str, char c)
 	return (res);
 }
 
-char	**ft_split(char const *str, char c)
+char	**_split(char const *str, char c)
 {
 	char	**res;
 	int		i;

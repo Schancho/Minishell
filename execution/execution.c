@@ -32,13 +32,13 @@ int execution(t_pline *p_line,char **env, t_env_var *lenv)
             close(fd[0]);
             if(iter->next)
                 dup2(fd[1], STDOUT_FILENO);
-            close(fd[1]);
 			path = path_finder(p_line->command->command, lenv);//check if path true
 			char **ptr = malloc(sizeof(char *) * 3);
             ptr[2] = NULL;
             ptr[0] = p_line->command->command;
             ptr[1] = p_line->command->next->command;
             execve(path, ptr , env);
+            close(fd[1]);
             exit(0);
         }
         else

@@ -8,13 +8,13 @@ char *path_finder(char *key, t_env_var *lenv)
 	struct stat	buf;
 	int i = 0;
 
-	key = ft_strjoin("/", key);
+	key = _strjoin("/", key);
 	PATH = search_env_var(lenv, "PATH");
 	paths = _split(PATH, ':');
 	while (paths[i])
 	{
-		if (!stat(ft_strjoin(paths[i], key), &buf))
-			return(ft_strjoin(paths[i], key));
+		if (!stat(_strjoin(paths[i], key), &buf))
+			return(_strjoin(paths[i], key));
 		i++;
 	}
 	return(NULL);
