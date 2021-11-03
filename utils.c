@@ -1,18 +1,5 @@
 #include "minishell.h"
 
-size_t	ft_strlen(const char *str)
-{
-	int	count;
-
-	if (str == NULL)
-		return (0);
-	count = 0;
-	while (str[count])
-		count++;
-	return (count);
-}
-
-
 char	*ft_strcat(char *dest, const char *src)
 {
 	unsigned int	i;

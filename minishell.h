@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <sys/stat.h>
 
 typedef enum e_file_type
 {
@@ -71,6 +72,11 @@ void        garbage(t_garbage **garbage, void *address);
 
 
 
-int execution(t_pline *p_line, char **env);
+int     execution(t_pline *p_line,char **env, t_env_var *lenv);
+char    **_split(char const *str, char c);
+char    *_strjoin(char const *s1, char const *s2);
+char    *search_env_var(t_env_var *env, char *str);
+char    *path_finder(char *key, t_env_var *lenv);
+size_t  ft_strlen(const char *s);
 
 #endif
