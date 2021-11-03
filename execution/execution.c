@@ -44,14 +44,12 @@ int execution(t_pline *p_line,char **env, t_env_var *lenv)
             if(iter->next)
                 dup2(fd[1], STDOUT_FILENO);
             close(fd[1]);
-			path = path_finder(p_line->command->command, lenv);
+			path = path_finder(p_line->command->command, lenv);//check if path true
 			char **ptr = malloc(sizeof(char *) * 3);
             ptr[2] = NULL;
             ptr[0] = p_line->command->command;
             ptr[1] = p_line->command->next->command;
-            // printf("path: %s, args: %s %s\n", ptr[0], ptr[0], ptr[1]);
             execve(path, ptr , env);
-			// execve(p_line->command->command, ptr , env);
             exit(0);
         }
         else
