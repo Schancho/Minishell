@@ -1,0 +1,19 @@
+test
+total 280
+drwxr-xr-x  17 razaha  2019    578 Nov  3 20:24 .
+drwx------   7 razaha  2019    238 Nov  3 20:16 ..
+drwxr-xr-x  15 razaha  2019    510 Nov  3 20:19 .git
+-rw-r--r--   1 razaha  2019     51 Nov  3 20:18 .gitignore
+-rw-r--r--   1 razaha  2019    457 Nov  3 19:10 Makefile
+-rw-r--r--   1 razaha  2019    169 Nov  3 18:01 README.md
+drwxr-xr-x   8 razaha  2019    272 Nov  3 19:16 execution
+-rw-r--r--   1 razaha  2019      5 Nov  3 20:24 f1
+-rw-r--r--   1 razaha  2019    818 Nov  3 18:01 garbage.c
+-rw-r--r--   1 razaha  2019    126 Nov  3 18:01 main.c
+-rwxr-xr-x   1 razaha  2019  77240 Nov  3 20:24 minishell
+drwxr-xr-x   3 razaha  2019    102 Nov  3 19:10 minishell.dSYM
+-rw-r--r--   1 razaha  2019   1830 Nov  3 20:03 minishell.h
+-rw-r--r--   1 razaha  2019  22121 Nov  3 20:09 parser.c
+-rw-r--r--   1 razaha  2019   2664 Nov  3 18:01 split.c
+-rw-r--r--   1 razaha  2019    195 Nov  3 18:06 tofix.txt
+-rw-r--r--   1 razaha  2019    706 Nov  3 18:43 utils.c

@@ -5,11 +5,7 @@
 
 // }
 
-
-//TO FIX
-// int execution(t_pline *p_line, t_env_var *env)
-
-int execution(t_pline *p_line,char **env, t_env_var *lenv)
+int execution(t_pline *p_line, t_env_var *env, t_garbage **g)
 {
     int in;
     int out;
@@ -18,19 +14,19 @@ int execution(t_pline *p_line,char **env, t_env_var *lenv)
     t_pline *iter;
     pid_t pid;
 	char *path;
-
-    out = dup(STDOUT_FILENO);
-    in = dup(STDIN_FILENO);
-    iter = p_line;
+    char **envv;
     int waits;
 
 
+    iter = p_line;
+	envv = environment_var(env, g);
+    out = dup(STDOUT_FILENO);
+    in = dup(STDIN_FILENO);
     waits = 0;
     while (iter)
     {
         pipe(fd);
         if (files_io_redirecions(fd, iter->file, red) == 1) {
-            printf("open(): %s\n", strerror(errno));
             exit(EXIT_FAILURE);
             continue;
         }
@@ -38,23 +34,17 @@ int execution(t_pline *p_line,char **env, t_env_var *lenv)
         if (pid == 0)
         {
             if(iter->next || red[1] != -1)
-            {
-                printf("dkhe;");
                 dup2(fd[1], STDOUT_FILENO);
-            }
             if(red[0] != -1)
-            {
-                printf("gg");
                 dup2(fd[0], STDIN_FILENO);
-            }
             close(fd[0]);
             close(fd[1]);
-			path = path_finder(iter->command->command, lenv);//check if path true
+			path = path_finder(iter->command->command, env);//check if path true
 			char **ptr = malloc(sizeof(char *) * 3);
             ptr[2] = NULL;
             ptr[0] = iter->command->command;
             ptr[1] = iter->command->next->command;
-            execve(path, ptr , env);
+            execve(path, ptr , envv);
             exit(0);
         }
         else

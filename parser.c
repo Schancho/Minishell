@@ -906,7 +906,7 @@ int main(int argc, char **argv, char **env)
                 i++;
             }
             p_line = expansion(en, p_line, &g);
-            execution(p_line, (char **)env, en);
+            execution(p_line , en , &g);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;

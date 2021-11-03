@@ -12,25 +12,22 @@ int files_io_redirecions(int *fd, t_file * iter, int *red)
             close(fd[0]);
             fd[0] = open(iter->file, O_RDONLY);
             red[0] = fd[0];
-            printf("open: INPUT %s\n", iter->file);
             if (fd[0] == -1)
                 return(1);
         }
         else if(iter->type == F_OUTPUT)
         {
             close(fd[1]);
-            fd[1] = open(iter->file, O_WRONLY | O_TRUNC | O_CREAT);
+            fd[1] = open(iter->file, O_WRONLY | O_TRUNC | O_CREAT, 0644);
             red[1] = fd[1];
-            printf("open: OUTPUT %s\n", iter->file);
             if (fd[1] == -1)
                 return(1);
         }
         else if(iter->type == F_APPEND)
         {
             close(fd[1]);
-            fd[1] = open(iter->file, O_RDONLY | O_APPEND | O_CREAT);
+            fd[1] = open(iter->file, O_WRONLY | O_APPEND | O_CREAT, 0644);
             red[1] = fd[1];
-            printf("open: APPEND %s\n", iter->file);
             if (fd[1] == -1)
                 return(1);
         }
