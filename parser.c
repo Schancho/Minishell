@@ -1,12 +1,19 @@
 #include "minishell.h"
 
+void        garbage(t_garbage **garbage, void *address)
+{
+    t_garbage *new;
+
+    new = (t_garbage *)malloc(sizeof(t_garbage));
+    new->next = *(garbage);
+    new->garb = address;
+    *garbage = new;
+}
+
 int     is_redirection(char c)
 {
     if (c == '>' || c == '<')
         return (1);
-
-
-
     return (0);
 }
 //malloc;
@@ -104,7 +111,7 @@ int     end(char *line)
     return i;
 }
 
-char    *command(char *cmd, int j, int m)
+char    *command(char *cmd, int j, int m, t_garbage **g)
 {
     int i;
     int k;
@@ -113,6 +120,7 @@ char    *command(char *cmd, int j, int m)
     i = 0;
     k = m - j + 1;
     str = malloc(k);
+    garbage(g, str);
     while (cmd[j] != '\0' && i != k - 1)
     {
         str[i] = cmd[j];
@@ -137,7 +145,7 @@ int     skip_pipe(char *line)
     return (i);
 }
 
-char    **split_pipe(char *line)
+char    **split_pipe(char *line, t_garbage **g)
 {
     int i;
     int j;
@@ -147,14 +155,15 @@ char    **split_pipe(char *line)
     
     j = 0;
     k = alloc_pipe(line);
-    // printf ("%d\n", k);
+    printf ("%d\n", k);
     pipes = (char**)malloc(sizeof(char*) * (k + 1));
+    garbage(g, pipes);
     i = 0;
     m = 0;
     while (i < k)
     {
         m = end(line + j) + j;
-        pipes[i] = command(line,j,m);
+        pipes[i] = command(line,j,m, g);
         j = m + 1;
         i++;
     }
@@ -162,17 +171,18 @@ char    **split_pipe(char *line)
     return pipes;
 }
 
-char    *quote_handler(char *name, char *str, int *i)
+char    *quote_handler(char *name, char *str, int *i, t_garbage **g)
 {
     char q;
     char *s;
     char k;
 
     s = malloc(2);
+    garbage(g, s);
     q = str[*i];
      s[0] = str[*i];//
      s[1] = '\0';//
-     name = ft_strjoin(name, s);//
+     name = ft_strjoin(name, s, g);//
      k = 0;//
     (*i)++;
     while (str[(*i)++])
@@ -181,13 +191,13 @@ char    *quote_handler(char *name, char *str, int *i)
         {    
             s[0] = str[*i];//
             (*i)++;
-            name = ft_strjoin(name, s);//
+            name = ft_strjoin(name, s,g);//
             free(s);
             return (name);
         }
         s[0] = str[*i];
         s[1] = '\0';
-        name = ft_strjoin(name, s);
+        name = ft_strjoin(name, s,g);
         //(*i)++;
     }
     if (str[*i] == '\0')
@@ -199,7 +209,7 @@ char    *quote_handler(char *name, char *str, int *i)
     return (NULL);
 }
 
-char    *get_file_name(char *str)
+char    *get_file_name(char *str, t_garbage **g)
 {
     int i;
     char *name;
@@ -209,6 +219,7 @@ char    *get_file_name(char *str)
     i = 0;
     j = 0;
     s = (char *)malloc(2);
+    garbage(g, s);
     name = "\0";
     while (str[i] == ' ' )
         i++;
@@ -218,11 +229,11 @@ char    *get_file_name(char *str)
         s[1] = '\0';
         if (str[i] == 39 || str[i] == 34)
         {
-            name = quote_handler(name, str, &i);
+            name = quote_handler(name, str, &i, g);
         }
         else
         {
-            name = ft_strjoin(name, s);
+            name = ft_strjoin(name, s, g);
             i++;
         }
         j++;
@@ -236,16 +247,17 @@ char    *get_file_name(char *str)
     return (name);
 }
 
-t_file  *file_add(t_file *file, char *str, int type)
+t_file  *file_add(t_file *file, char *str, int type, t_garbage **g)
 {
     t_file *new;
     t_file *tmp;
 
     tmp = file;
     new = (t_file *)malloc(sizeof(t_file));
+    garbage(g, new);
     new->next = NULL;
     new->type = type;
-    new->file = (get_file_name(str));
+    new->file = (get_file_name(str,g));
     if (!tmp)
         return (new);
     while (tmp->next)
@@ -271,7 +283,7 @@ int       skipe_quote(char *str, int i)
     }
     return (i);
 }
-t_file    *file(t_file *files, char *command)
+t_file    *file(t_file *files, char *command, t_garbage **g)
 {
     int i;
     int k;
@@ -284,25 +296,25 @@ t_file    *file(t_file *files, char *command)
         if (command[i] == '>' && command[i + 1] == '>')
         {
             i += 2;
-            files = file_add(files, command + i, 4);
+            files = file_add(files, command + i, 4, g);
             k = 1;
         }
         else if (command[i] == '<' && command[i + 1] == '<')
         {
             i += 2;
-            files = file_add(files, command + i, 3);
+            files = file_add(files, command + i, 3, g);
             k = 1;
         }
         else if (command[i] == '>')
         {
             i += 1;
-            files = file_add(files, command + i, 1);
+            files = file_add(files, command + i, 1, g);
             k = 1;
         }
         else if (command[i] == '<')
         {
             i += 1;
-            files = file_add(files, command + i, 2);
+            files = file_add(files, command + i, 2, g);
             k = 1;
         }
         if (k != 1)
@@ -312,27 +324,29 @@ t_file    *file(t_file *files, char *command)
 }
 
 
-t_pipe  *add_pipe_line(t_pipe *pipe, char *cmd)
+t_pipe  *add_pipe_line(t_pipe *pipe, char *cmd, t_garbage **g)
 {
     t_pipe *new;
     t_pipe *tmp;
 
     tmp = pipe;
     new = (t_pipe *)malloc(sizeof(t_pipe));
+    garbage(g, new);
     new->pipe_line = strdup(cmd);
+    garbage(g, new->pipe_line);
     new->next = NULL;
     while (tmp)
         tmp = tmp->next;
     tmp = new;
     return pipe;
 }
-t_pipe  *pipe_line(t_pipe *p, char **command)
+t_pipe  *pipe_line(t_pipe *p, char **command, t_garbage **g)
 {
     int i;
 
     while (command[i])
     {
-        p = add_pipe_line(p, command[i]);
+        p = add_pipe_line(p, command[i], g);
         i++;
     }
     return p;
@@ -363,7 +377,7 @@ int     skip_redirection(char *str, int i)
     return (i);
 }
 
-char    *delete_red(char *str)
+char    *delete_red(char *str, t_garbage **g)
 {
     char *ret;
     char *s;
@@ -372,6 +386,8 @@ char    *delete_red(char *str)
 
     s = malloc(2);
     ret = malloc(1);
+    garbage(g, s);
+    garbage(g,ret);
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
@@ -383,25 +399,25 @@ char    *delete_red(char *str)
             if (str[i + 1] == q)
             {
                 s[0] = str[i];
-                ret = ft_strjoin(ret, s);
-                ret = ft_strjoin(ret, s);
+                ret = ft_strjoin(ret, s, g);
+                ret = ft_strjoin(ret, s, g);
                 i = i + 2;
             }
             else
             {
                 s[0] = str[i];
-                ret = ft_strjoin(ret, s);
+                ret = ft_strjoin(ret, s, g);
                 i++;
                 while (str[i] != q)
                 {
                     
                     s[0] = str[i];
                     if (str[i] != q)
-                        ret = ft_strjoin(ret, s);
+                        ret = ft_strjoin(ret, s,g);
                     i++;
                 }
                 s[0] = str[i];
-                ret = ft_strjoin(ret, s);
+                ret = ft_strjoin(ret, s, g);
                 i++;
                 
             }
@@ -418,7 +434,7 @@ char    *delete_red(char *str)
         else
         {
             s[0] = str[i];
-            ret = ft_strjoin(ret, s);
+            ret = ft_strjoin(ret, s, g);
             i++;
         }
         
@@ -427,15 +443,17 @@ char    *delete_red(char *str)
     return (ret);
 }
 
-t_command   *command_parser(t_command *cmd, char *str)
+t_command   *command_parser(t_command *cmd, char *str, t_garbage **g)
 {
     t_command *tmp;
     t_command *new;
 
     tmp = cmd;
     new = (t_command *)malloc(sizeof(t_command));
+    garbage(g, new);
     new->next = NULL;
     new->command = strdup(str);
+    garbage(g , new->command);
     if(!tmp)
         return (new);
     while (tmp->next)
@@ -444,28 +462,29 @@ t_command   *command_parser(t_command *cmd, char *str)
     return (cmd);
 }
 
-t_command   *get_command(t_command *cmd, char *command)
+t_command   *get_command(t_command *cmd, char *command, t_garbage **g)
 {
     char **str;
     int i;
 
     i = 0;
-    str = ft_split(delete_red(command), ' ');
+    str = ft_split(delete_red(command,g), ' ', g);
     while (str[i])
     {
-        cmd = command_parser(cmd, str[i]);
+        cmd = command_parser(cmd, str[i], g);
         i++;
     }
     return cmd; 
 }
 
-t_pline     *pipeline(t_pline *pipe, t_file *file, t_command *cmd)
+t_pline     *pipeline(t_pline *pipe, t_file *file, t_command *cmd, t_garbage **g)
 {
     t_pline *new;
     t_pline *tmp;
 
     tmp = pipe;
     new = (t_pline *)malloc(sizeof(t_pline));
+    garbage(g, new);
     new->next = NULL;
     new->file = file;
     new->command = cmd;
@@ -477,21 +496,22 @@ t_pline     *pipeline(t_pline *pipe, t_file *file, t_command *cmd)
     return (pipe);
 }
 
-t_pline     *pline(t_pline *p_line, t_file *files, t_command *cmd, char *str)
+t_pline     *pline(t_pline *p_line, t_file *files, t_command *cmd, char *str, t_garbage **g)
 {
-    files = file(files, str);
-    cmd = get_command(cmd, str);
-    p_line = pipeline(p_line, files, cmd);
+    files = file(files, str, g);
+    cmd = get_command(cmd, str, g);
+    p_line = pipeline(p_line, files, cmd, g);
     return (p_line);
 }
 
-t_line  *command_line(t_line *line, t_pline *pipe)
+t_line  *command_line(t_line *line, t_pline *pipe, t_garbage **g)
 {
     t_line *tmp;
     t_line *new;
 
     tmp = line;
     new = (t_line *)malloc(sizeof(t_line));
+    garbage(g, new);
     new->next = NULL;
     new->pipe_line = pipe;
     if (!tmp)
@@ -518,6 +538,14 @@ char    *search_env_var(t_env_var *env, char *str)
     return (NULL);
 }
 
+void    reline(int sig)
+{
+    //signal(SIGINT, reline);
+    //write(2, "\r",1);
+    rl_on_new_line();
+    //rl_replace_line("shell",STDIN_FILENO);
+    rl_redisplay();
+}
 
 // t_env_var   *search_env_var(t_env_var *env, char *key)
 // {
@@ -551,12 +579,14 @@ t_env_var   *remove_env_var(t_env_var *env, char *key)
     return (env);
 }
 
-t_env_var   *add_var_to_env(t_env_var *env, char *var)
+t_env_var   *add_var_to_env(t_env_var *env, char *var, t_garbage **g)
 {
     t_env_var *new;
 
     new = (t_env_var *)malloc(sizeof(t_env_var));
+    garbage(g, new);
     new->env = strdup(var);
+    garbage(g, new->env);
     new->var = strchr(var, '=') + 1;
     var[strlen(var) - strlen(strchr(var, '='))] = '\0';
     new->value = var;
@@ -564,20 +594,20 @@ t_env_var   *add_var_to_env(t_env_var *env, char *var)
     return (new);
 }
 
-t_env_var   *clone_env(t_env_var *env_var, char **env)
+t_env_var   *clone_env(t_env_var *env_var, char **env, t_garbage **g)
 {
     int i;
 
     i = 0;
     while (env[i])
     {
-        env_var = add_var_to_env(env_var, env[i]);
+        env_var = add_var_to_env(env_var, env[i], g);
         i++;
     }
     return (env_var);
 }
 
-char    **environment_var(t_env_var *environment)
+char    **environment_var(t_env_var *environment, t_garbage **g)
 {
     char **env;
     t_env_var *tmp;
@@ -591,6 +621,7 @@ char    **environment_var(t_env_var *environment)
         len++;
     }
     env = (char **)malloc(sizeof(char*) * len);
+    garbage(g, env);
     i = 0;
     while (environment)
     {
@@ -620,27 +651,29 @@ int     skip_env(char *str)
 
 }
 
-char    *get_env_va(char *str)
+char    *get_env_va(char *str, t_garbage **g)
 {
     int i;
     char *ret;
     char *s;
     s = malloc(2);
     ret = malloc(1);
+    garbage(g, s);
+    garbage(g, ret);
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
     while (is_alpha_num(str[i]) == 1 || str[i] == '_')
     {
         s[0] = str[i];
-        ret = ft_strjoin(ret, s);
+        ret = ft_strjoin(ret, s, g);
         i++;
     }
     free(s);
     return (ret);
 }
 
-char    *expander(t_env_var *env, char *str)
+char    *expander(t_env_var *env, char *str, t_garbage **g)
 {
     char *ret;
     char *s;
@@ -649,6 +682,8 @@ char    *expander(t_env_var *env, char *str)
 
     ret = malloc(1);
     s = malloc(2);
+    garbage(g, ret);
+    garbage(g, s);
     s[1] = '\0';
     ret[0] = '\0';
     i = 0;
@@ -663,7 +698,7 @@ char    *expander(t_env_var *env, char *str)
                 while (str[i] && str[i] != 39)
                 {
                     s[0] = str[i]; 
-                    ret = ft_strjoin(ret, s);
+                    ret = ft_strjoin(ret, s, g);
                     i++;
                 }
             }
@@ -673,15 +708,15 @@ char    *expander(t_env_var *env, char *str)
                 {
                     if (str[i] == '$' && str[i + 1] != '$')
                     {
-                        if (search_env_var(env, get_env_va(str + i + 1)))
-                            ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1)));
+                        if (search_env_var(env, get_env_va(str + i + 1, g)))
+                            ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1, g)), g);
                         i = skip_env(str + i + 1) + i + 1;
                     }
                     else
                     {
                         s[0] = str[i];
                         if (s[0] != q)
-                            ret = ft_strjoin(ret, s);
+                            ret = ft_strjoin(ret, s, g);
                         i++;
                     }
                 }
@@ -695,8 +730,8 @@ char    *expander(t_env_var *env, char *str)
         }
         if (str[i] == '$' && str[i + 1] != '$')
         {
-            if (search_env_var(env, get_env_va(str + i + 1)))
-                ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1)));
+            if (search_env_var(env, get_env_va(str + i + 1, g)))
+                ret = ft_strjoin(ret, search_env_var(env, get_env_va(str + i + 1, g)), g);
             i = skip_env(str + i + 1) + i;
 
         }
@@ -704,7 +739,7 @@ char    *expander(t_env_var *env, char *str)
         {
             s[0] = str[i];
             if (s[0] != 34 && s[0] != 39)
-                ret = ft_strjoin(ret, s);
+                ret = ft_strjoin(ret, s, g);
         }
         if (str[i] == '\0')
         {
@@ -796,7 +831,7 @@ t_file      *file_delete_null(t_file *file)
     return (file);
 }
 
-t_pline     *expansion(t_env_var *env, t_pline *line)
+t_pline     *expansion(t_env_var *env, t_pline *line, t_garbage **g)
 {
     t_pline *tmp;
     t_file *file;
@@ -808,14 +843,15 @@ t_pline     *expansion(t_env_var *env, t_pline *line)
         cmd = tmp->command;
         while (cmd)
         {
-            cmd->command = expander(env, cmd->command);
+            cmd->command = expander(env, cmd->command, g);
             cmd = cmd->next;
         }
         tmp->command = command_delete_null(tmp->command);
         file = tmp->file;
         while (file)
         {
-            file->file = expander(env, file->file);
+            if (file->type != 3)
+                file->file = expander(env, file->file, g);
             file = file->next;
         }
         tmp->file = tmp->file;
@@ -839,6 +875,7 @@ int main(int argc, char **argv, char **env)
     t_pline *temp;
     char **aff;
     char *test;
+    t_garbage *g;
     
     
     p_line = NULL;
@@ -851,7 +888,7 @@ int main(int argc, char **argv, char **env)
     
     //signal(SIGINT, reline);
     en = NULL;
-    en = clone_env(en, env);
+    en = clone_env(en, env, &g);
     while (1)
     {
         line = readline("shell> ");
@@ -862,15 +899,15 @@ int main(int argc, char **argv, char **env)
         else
         {
             add_history(line);
-            str = split_pipe(line);
+            str = split_pipe(line, &g);
             i = 0;
             while (str[i])
             {
-                p_line = pline(p_line, files, command, str[i]);
+                p_line = pline(p_line, files, command, str[i], &g);
                 i++;
             }
-            p_line = expansion(en, p_line);
-            execution(p_line, env, en);
+            p_line = expansion(en, p_line, &g);
+            //execution(p_line, (char **)env);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;
@@ -882,7 +919,7 @@ int main(int argc, char **argv, char **env)
             // cmd = strdup("slimane=kajdsbnnkjdas");
             // printf ("******************************************\n");
             // en = add_var_to_env(en, cmd);
-            // aff = environment_var(en);
+            //  aff = environment_var(en);
             // i = 0;
             // // printf("-- |%s|\n", aff[0]);
             // while (aff[i])
@@ -911,55 +948,54 @@ int main(int argc, char **argv, char **env)
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
-            // temp = p_line;
-            // i = 1;
-            // while (temp)
-            // {
-            //     printf("pipeline N %d: \n",i);
-            //     j = 1;
-            //     while (temp->command)
-            //     {
-            //         printf("    command N %d: %s\n",j,temp->command->command);
-            //         temp->command = temp->command->next;
-            //         j++;
-            //     }
-            //     j = 1;
-            //     while (temp->file)
-            //     {
-            //         printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
-            //         temp->file = temp->file->next;
-            //         j++;
-            //     }
-            //     temp = temp->next;
-            //     i++;
-            // }
-            i = 0;
-            while (str[i])
-            {
-                free(str[i]);
-                i++;
-            }
-            free(str);
             temp = p_line;
+            i = 1;
             while (temp)
             {
+                printf("pipeline N %d: \n",i);
+                j = 1;
                 while (temp->command)
                 {
-                    free(temp->command->command);
+                    printf("    command N %d: %s\n",j,temp->command->command);
                     temp->command = temp->command->next;
                     j++;
                 }
-                free(temp->command);
+                j = 1;
                 while (temp->file)
                 {
-                    free(temp->file->file);
+                    printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
                     temp->file = temp->file->next;
+                    j++;
                 }
-                free(temp->file);
                 temp = temp->next;
+                i++;
             }
-			p_line = NULL;
-            free(temp);
+            // i = 0;
+            // while (str[i])
+            // {
+            //     free(str[i]);
+            //     i++;
+            // }
+            // free(str);
+            // temp = p_line;
+            // while (temp)
+            // {
+            //     while (temp->command)
+            //     {
+            //         free(temp->command->command);
+            //         temp->command = temp->command->next;
+            //         j++;
+            //     }
+            //     free(temp->command);
+            //     while (temp->file)
+            //     {
+            //         free(temp->file->file);
+            //         temp->file = temp->file->next;
+            //     }
+            //     free(temp->file);
+            //     temp = temp->next;
+            // }
+            // free(temp);
             //free(p_line);
             //str = NULL;
             // cmd = expander(en, p_line->file->file);
@@ -985,9 +1021,10 @@ int main(int argc, char **argv, char **env)
             //     printf("type = %d file_name = %s\n",files->type, files->file);
             //     files = files->next;
             // }
+            //free(line);
 
         }
-        // system("leaks minishell");
+        //system("leaks minishell");
     }
     return (0);
 }
@@ -1003,4 +1040,8 @@ add_env to linkedlist
 remove env linkedlist
 search env in linked list
 conver env to char ** in this format xx=ddddd
+*/
+/*
+    >> 1expand
+
 */
