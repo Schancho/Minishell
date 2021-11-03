@@ -43,7 +43,7 @@ int	ft_wdcounter(char const *str, char c)
 	return (words);
 }
 
-static char	**memory_giver(char const *str, char c)
+static char	**memory_giver(char const *str, char c, t_garbage **g)
 {
 	char	**res;
 	int		letters;
@@ -52,6 +52,7 @@ static char	**memory_giver(char const *str, char c)
 	char	q;
 
 	res = (char **)malloc(sizeof(char *) * (ft_wdcounter(str, c) + 1));
+	garbage(g, res);
 	i = 0;
 	j = 0;
 	while (str[i])
@@ -86,14 +87,17 @@ static char	**memory_giver(char const *str, char c)
 			}
 		}
 		if (letters > 0)
+		{
 			res[j++] = (char *)malloc(sizeof(char) * letters + 1);
+			garbage(g, res);
+		}
 	}
 	
 	res[j] = 0;
 	return (res);
 }
 
-char	**_split(char const *str, char c)
+char	**ft_split(char const *str, char c, t_garbage **g)
 {
 	char	**res;
 	int		i;
@@ -105,7 +109,7 @@ char	**_split(char const *str, char c)
 	if (str == NULL)
 		return (NULL);
 	size = ft_wdcounter(str, c);
-	res = memory_giver(str, c);
+	res = memory_giver(str, c, g);
 	if (res == NULL)
 		return (NULL);
 	i = 0;

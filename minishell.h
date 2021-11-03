@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <sys/stat.h>
 
 typedef enum e_file_type
 {
@@ -16,6 +15,13 @@ typedef enum e_file_type
         F_HEREDOC = 3,
         F_APPEND = 4
 }           t_file_type;
+
+typedef struct s_garbage
+{
+    void *garb;
+    struct s_garbage *next;
+
+}               t_garbage;
 
 typedef struct  s_file
 {
@@ -56,22 +62,15 @@ typedef struct s_line
     t_pline *pipe_line;
     struct s_line *next;
 }               t_line;
-
-char    **split_pipe(char *line);
-char	**ft_split(char const *str, char c);
-char    *search_env_var(t_env_var *env, char *str);
-char    **environment_var(t_env_var *environment);
-
+char    **split_pipe(char *line, t_garbage **g);
+char    *ft_strjoin(char const *s1, char const *s2, t_garbage **g);
+char	**ft_split(char const *str, char c, t_garbage **g);
+void        garbage(t_garbage **garbage, void *address);
 
 
-//Execution Functions
-// int		execution(t_pline *p_line, t_env_var *env);
-int		execution(t_pline *p_line,char **env, t_env_var *lenv);
-char	*path_finder(char *key, t_env_var *lenv);
 
-//Execution utils Functions
-char	**_split(char const *str, char c);
-char	*ft_strjoin(char const *s1, char const *s2);
-size_t	ft_strlen(const char *s);
+
+
+int execution(t_pline *p_line, char **env);
 
 #endif
