@@ -46,12 +46,12 @@ typedef struct          s_pline
     struct s_pline      *next;
 }                       t_pline;
 
-typedef struct      s_line
-{
-    char            **command;
-    t_file          *file;
-    struct s_line   *next;
-}                   t_line;
+// typedef struct      s_line
+// {
+//     char            **command;
+//     t_file          *file;
+//     struct s_line   *next;
+// }                   t_line;
 
 
 typedef struct s_pipe
@@ -68,15 +68,16 @@ typedef struct s_env_var
     struct s_env_var *next;
 }               t_env_var;
 
-// typedef struct s_line
-// {
-//     t_pline *pipe_line;
-//     struct s_line *next;
-// }               t_line;
+typedef struct s_line
+{
+    t_pline *pipe_line;
+    struct s_line *next;
+}               t_line;
 char    **split_pipe(char *line, t_garbage **g);
 char    *ft_strjoin(char const *s1, char const *s2, t_garbage **g);
 char	**ft_split(char const *str, char c, t_garbage **g);
 void        garbage(t_garbage **garbage, void *address);
+char	**_split(char const *str, char c);
 
 
 

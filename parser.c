@@ -861,43 +861,98 @@ t_pline     *expansion(t_env_var *env, t_pline *line, t_garbage **g)
     return (line);
 }
 
-char    *conv_cmd(t_command *cmd)
-{
-    char **str;
-    int i;
+// char    *conv_cmd(t_command *cmd)
+// {
+//     char **str;
+//     int i;
 
+//     i = 0;
+//     while (cmd)
+//     {
+//         str[i] = cmd->command;
+//         i++;
+//         cmd = cmd->next;
+//     }
+//     str[i] = 0;
+//     return str;
+// }
+
+// t_line  *c_line(t_pline *p_line, t_garbage **g)
+// {
+//     t_line  *line;
+//     t_line  *l_tmp;
+//     t_pline *p_tmp;
+
+    
+//     p_tmp = p_line;
+//     while (p_tmp)
+//     {
+//         l_tmp->file = p_line->file;
+//         l_tmp->command = conv_cmd(p_line->command);
+//         l_tmp = l_tmp->next;
+//         p_line = p_line->next;
+//     }
+
+// }
+
+
+int     sizeof_string_table(t_command *cmd)
+{
+    int i;
+    int j;
+    char **str;
+    
     i = 0;
     while (cmd)
     {
-        str[i] = cmd->command;
-        i++;
+        str = _split(cmd->command, ' ');
+        j = 0;
+        while (str[j])
+        {
+            i++;
+            j++;
+        }
+        if(j == 0)
+            i++;
         cmd = cmd->next;
     }
-    str[i] = 0;
-    return str;
+    return (i);
 }
 
-t_line  *c_line(t_pline *p_line, t_garbage **g)
+char    **conv_cmd(t_command *cmd)
 {
-    t_line  *line;
-    t_line  *l_tmp;
-    t_pline *p_tmp;
-
+    int i;
+    int j;
+    char **str;
+    char **ret;
     
-    p_tmp = p_line;
-    while (p_tmp)
+    i = 0;
+    ret = (char **)malloc(sizeof(char *) * (sizeof_string_table(cmd) + 1));
+    while (cmd)
     {
-        l_tmp->file = p_line->file;
-        l_tmp->command = conv_cmd(p_line->command);
-        l_tmp = l_tmp->next;
-        p_line = p_line->next;
+        str = _split(cmd->command, ' ');
+        j = 0;
+        while (str[j])
+        {
+            ret[i] = str[j];
+            i++;
+            j++;
+        }
+        if(j == 0)
+        {
+            ret[i] = str[0];
+            i++;
+        }
+        cmd = cmd->next;
     }
-
+    ret[i] = NULL;
+    return (ret);
 }
 
 int main(int argc, char **argv, char **env)
 {
     int     i;
+    int     k;
     char **str;
     char *line;
     int j;
@@ -910,7 +965,7 @@ int main(int argc, char **argv, char **env)
     char **aff;
     char *test;
     t_garbage *g;
-    t_line  *command_line;
+    //t_line  *command_line;
     
     
     p_line = NULL;
@@ -942,7 +997,8 @@ int main(int argc, char **argv, char **env)
                 i++;
             }
             p_line = expansion(en, p_line, &g);
-            command_line = c_line(p_line, &g);
+            aff = conv_cmd(p_line->command);
+            //command_line = c_line(p_line, &g);
             //execution(p_line, (char **)env);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
@@ -956,13 +1012,13 @@ int main(int argc, char **argv, char **env)
             // printf ("******************************************\n");
             // en = add_var_to_env(en, cmd);
             //  aff = environment_var(en);
-            // i = 0;
-            // // printf("-- |%s|\n", aff[0]);
-            // while (aff[i])
-            // {
-            //     printf("-- |%s|\n", aff[i]);
-            //     i++;
-            // }
+            i = 0;
+            // printf("-- |%s|\n", aff[0]);
+            while (aff[i])
+            {
+                printf("-- |%s|\n", aff[i]);
+                i++;
+            }
             // tmp = en;
             // while (tmp)
             // {
@@ -990,10 +1046,12 @@ int main(int argc, char **argv, char **env)
             {
                 printf("pipeline N %d: \n",i);
                 j = 1;
-                while (temp->command)
+                aff = conv_cmd(p_line->command);
+                k = 0;
+                while (aff[k])
                 {
-                    printf("    command N %d: %s\n",j,temp->command->command);
-                    temp->command = temp->command->next;
+                    printf("    command N %d: %s\n",j,aff[k]);
+                    k++;
                     j++;
                 }
                 j = 1;
@@ -1057,7 +1115,9 @@ int main(int argc, char **argv, char **env)
             //     printf("type = %d file_name = %s\n",files->type, files->file);
             //     files = files->next;
             // }
-            //free(line);
+            free(line);
+            p_line = NULL;
+            
 
         }
         //system("leaks minishell");
