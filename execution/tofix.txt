@@ -1,0 +1,28 @@
+
+//TO FIX
+// char **envv;
+// envv = environment_var(env);
+// int i;
+// i = 0;
+// // printf("-- |%s|\n", aff[0]);
+// while (envv[i])
+// {
+// 	printf("-- |%s|\n", envv[i]);
+// 	i++;
+// }
+
+
+
+if f1 or deosn't exist : bash: f1: No such file or directory
+echo < f1 < f2 < f3 | cat - | grep utils
+
+
+check if the file exists using fstat:
+if filename contains "/" : means absolute path, fstat(fname)
+else try to find in $PATH
+
+
+//to do 
+implement builtins
+work on return status
+implement signals 
