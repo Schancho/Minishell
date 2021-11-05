@@ -831,11 +831,32 @@ t_file      *file_delete_null(t_file *file)
     return (file);
 }
 
-t_pline     *expansion(t_env_var *env, t_pline *line, t_garbage **g)
+char        *heredoc(char **file_list, char* stop, t_garbage **g, int *f)
+{
+        int fd;
+        char *file_name;
+        char *line;
+
+        line = readline("heredoc> ");
+        file_name = ft_strjoin(strdup("/tmp/file"), ft_itoa(*f), g);
+        fd = open(file_name, O_CREAT | O_RDWR, 0777);
+        while (strcmp(line, stop) != 0)
+        {
+            line = readline("heredoc> ");
+            write(fd, line, strlen(line));
+            write(fd, "\n", 1);
+        }
+            
+        //file_list = add_to_file_list(file_list, file_name);
+    return (file_name);
+}
+
+t_pline     *expansion(t_env_var *env, t_pline *line, t_garbage **g, char ***file_list)
 {
     t_pline *tmp;
     t_file *file;
     t_command *cmd;
+    int f=0;
 
     tmp = line;
     while (tmp)
@@ -852,6 +873,10 @@ t_pline     *expansion(t_env_var *env, t_pline *line, t_garbage **g)
         {
             if (file->type != 3)
                 file->file = expander(env, file->file, g);
+            else if (file->type == 3)
+            {
+                file->file = heredoc(*file_list, file->file, g, &f);
+            }
             file = file->next;
         }
         tmp->file = tmp->file;
@@ -974,7 +999,7 @@ int main(int argc, char **argv, char **env)
     //char **command;
 
     files = NULL;
-        
+
     
     //signal(SIGINT, reline);
     en = NULL;
@@ -996,10 +1021,11 @@ int main(int argc, char **argv, char **env)
                 p_line = pline(p_line, files, command, str[i], &g);
                 i++;
             }
-            p_line = expansion(en, p_line, &g);
+            p_line = expansion(en, p_line, &g, &str);
+            //p_line = heredoc(p_line, )
             aff = conv_cmd(p_line->command);
             //command_line = c_line(p_line, &g);
-            exec_pline(p_line, en, &g);
+           // exec_pline(p_line, en, &g);
            // cmd = strdup("ef")
             // cmd = expander(en, argv[1]);
             // tmp = en;
@@ -1040,30 +1066,30 @@ int main(int argc, char **argv, char **env)
             //     printf("%s\n",env[i++]);
             // cmd = env_var(env, line);
             // printf("env var: %s\n", cmd);
-            // temp = p_line;
-            // i = 1;
-            // while (temp)
-            // {
-            //     printf("pipeline N %d: \n",i);
-            //     j = 1;
-            //     aff = conv_cmd(p_line->command);
-            //     k = 0;
-            //     while (aff[k])
-            //     {
-            //         printf("    command N %d: %s\n",j,aff[k]);
-            //         k++;
-            //         j++;
-            //     }
-            //     j = 1;
-            //     while (temp->file)
-            //     {
-            //         printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
-            //         temp->file = temp->file->next;
-            //         j++;
-            //     }
-            //     temp = temp->next;
-            //     i++;
-            // }
+             temp = p_line;
+            i = 1;
+            while (temp)
+            {
+                printf("pipeline N %d: \n",i);
+                j = 1;
+                aff = conv_cmd(p_line->command);
+                k = 0;
+                while (aff[k])
+                {
+                    printf("    command N %d: %s\n",j,aff[k]);
+                    k++;
+                    j++;
+                }
+                j = 1;
+                while (temp->file)
+                {
+                    printf("    file N %d: %s Type %d\n",j,temp->file->file, temp->file->type);
+                    temp->file = temp->file->next;
+                    j++;
+                }
+                temp = temp->next;
+                i++;
+            }
             // i = 0;
             // while (str[i])
             // {

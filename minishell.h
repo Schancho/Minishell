@@ -69,6 +69,7 @@ char    *ft_strjoin(char const *s1, char const *s2, t_garbage **g);
 char	**ft_split(char const *str, char c, t_garbage **g);
 void	garbage(t_garbage **garbage, void *address);
 char	**_split(char const *str, char c);
+char	*ft_itoa(int nbr);
 
 int		exec_pline(t_pline *p_line, t_env_var *lenv, t_garbage **g);
 
